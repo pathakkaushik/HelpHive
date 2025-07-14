@@ -1,4 +1,3 @@
-// src/data/dummyData.js
 export const services = [
   { name: 'Maid', icon: '🧹', description: 'For a spotless home.' },
   { name: 'Cook', icon: '🍳', description: 'For delicious, healthy meals.' },

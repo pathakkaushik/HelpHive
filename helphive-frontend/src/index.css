@@ -10,7 +10,10 @@
 @layer base {
   html {
     font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  /* Set a default border color to avoid needing to specify it on every utility */
   *, ::before, ::after {
     border-color: theme(colors.gray.200);
   }
