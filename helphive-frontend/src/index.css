@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: theme(colors.indigo.600);
+  --color-primary-hover: theme(colors.indigo.700);
+  --color-secondary: theme(colors.pink.500);
+  --font-family-sans: "Inter", "system-ui", "sans-serif";
+}
+
+@layer base {
+  html {
+    font-family: var(--font-family-sans);
+  }
+  *, ::before, ::after {
+    border-color: theme(colors.gray.200);
+  }
+}
