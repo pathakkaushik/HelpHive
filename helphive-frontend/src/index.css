@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: theme(colors.indigo.600);
-  --color-primary-hover: theme(colors.indigo.700);
+  --color-primary: theme(colors.teal.500);
+  --color-primary-hover: theme(colors.teal.600);
   --color-secondary: theme(colors.pink.500);
   --font-family-sans: "Inter", "system-ui", "sans-serif";
 }
@@ -12,9 +12,39 @@
     font-family: var(--font-family-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Set the global text and background colors */
+    background-color: theme(colors.slate.900);
+    color: theme(colors.slate.200);
   }
-  /* Set a default border color to avoid needing to specify it on every utility */
+
+  /*
+   * We add a subtle radial gradient to the body for a more "attractive" look.
+   * It gives a soft glow from the top, adding depth.
+   */
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    background: radial-gradient(circle, rgba(22, 163, 164, 0.1), transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Set a default border color for dark mode */
   *, ::before, ::after {
-    border-color: theme(colors.gray.200);
+    border-color: theme(colors.slate.700);
+  }
+
+  /* Custom styling for form inputs in dark mode */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  select {
+    @apply w-full rounded-md border-0 bg-slate-800 py-2.5 px-3 text-slate-200 ring-1 ring-inset ring-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm;
   }
 }

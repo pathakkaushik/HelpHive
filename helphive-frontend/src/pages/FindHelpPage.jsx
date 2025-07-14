@@ -28,22 +28,22 @@ const FindHelpPage = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-slate-900">
       <Navbar />
       <div className="container mx-auto max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Find Your Perfect Help</h1>
-          <p className="mt-2 text-lg text-gray-600">Search and filter from our list of trusted professionals.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Find Your Perfect Help</h1>
+          <p className="mt-2 text-lg text-slate-300">Search and filter from our list of trusted professionals.</p>
         </header>
 
         {/* Filters Section */}
-        <div className="rounded-lg border bg-white p-4 shadow-sm md:flex md:items-center md:justify-between md:gap-4">
+        <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 shadow-sm md:flex md:items-center md:justify-between md:gap-4">
           <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by name or location (e.g., 'Sita' or 'Mumbai')"
-              className="w-full rounded-md border-gray-300 py-2 pl-10 pr-4 focus:border-primary focus:ring-primary"
+              className="pl-10" /* Reuses base input styles from index.css */
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -51,7 +51,7 @@ const FindHelpPage = () => {
           <div className="mt-4 flex flex-col gap-4 sm:flex-row md:mt-0">
             <select
               name="service"
-              className="w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:w-48"
+              className="sm:w-48" /* Reuses base select styles */
               value={filters.service}
               onChange={handleFilterChange}
             >
@@ -63,11 +63,11 @@ const FindHelpPage = () => {
                 type="checkbox"
                 id="verified"
                 name="verified"
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-primary focus:ring-primary"
                 checked={filters.verified}
                 onChange={handleFilterChange}
               />
-              <label htmlFor="verified" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="verified" className="ml-2 block text-sm text-slate-200">
                 Fully Verified Only
               </label>
             </div>
@@ -84,8 +84,8 @@ const FindHelpPage = () => {
             </div>
           ) : (
             <div className="py-16 text-center">
-              <h3 className="text-xl font-semibold text-gray-800">No Helpers Found</h3>
-              <p className="mt-2 text-gray-500">Try adjusting your search or filters.</p>
+              <h3 className="text-xl font-semibold text-white">No Helpers Found</h3>
+              <p className="mt-2 text-slate-400">Try adjusting your search or filters.</p>
             </div>
           )}
         </div>
