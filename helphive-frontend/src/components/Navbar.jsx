@@ -30,7 +30,8 @@ const Navbar = () => {
           </div>
           <div className="hidden md:block">
             <Link to="/login" className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:text-primary">Login</Link>
-            <Link to="/signup" className="ml-4 inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover">Sign Up</Link>
+            {/* CORRECTED CLASS */}
+            <Link to="/signup" className="ml-4 btn btn-primary">Sign Up</Link>
           </div>
           <div className="-mr-2 flex md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} type="button" className="inline-flex items-center justify-center rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900">
@@ -46,7 +47,7 @@ const Navbar = () => {
             <Link to="/" className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-primary">Home</Link>
             <Link to="/find" className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-primary">Find Help</Link>
             <Link to="/login" className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-primary">Login</Link>
-            <Link to="/signup" className="block rounded-md bg-primary px-3 py-2 text-base font-medium text-white hover:bg-primary-hover">Sign Up</Link>
+            <Link to="/signup" className="mt-1 block rounded-md bg-primary px-3 py-2 text-base font-medium text-white hover:bg-primary-hover text-center">Sign Up</Link>
           </div>
         </div>
       )}

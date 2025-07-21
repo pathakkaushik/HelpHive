@@ -22,8 +22,8 @@ const WorkerLoginPage = () => {
           <form className="mt-8 space-y-6" action="#" method="POST">
             <div className="flex flex-col gap-4 rounded-md">
               <div>
-                <label htmlFor="email-address" className="sr-only">Email address</label>
-                <input id="email-address" name="email" type="email" autoComplete="email" required placeholder="Email address or Phone Number" />
+                <label htmlFor="email-address" className="sr-only">Email address or Phone</label>
+                <input id="email-address" name="email" type="text" autoComplete="email" required placeholder="Email address or Phone Number" />
               </div>
               <div>
                 <label htmlFor="password" className="sr-only">Password</label>
@@ -34,7 +34,7 @@ const WorkerLoginPage = () => {
                 <a href="#" className="font-medium text-primary hover:text-primary-hover">Forgot your password?</a>
             </div>
             <div>
-              <button type="submit" className="group relative flex w-full justify-center rounded-md bg-primary py-2.5 px-3 text-sm font-semibold text-white hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <button type="submit" className="flex w-full justify-center btn btn-primary">
                 Sign in to Worker Portal
               </button>
             </div>

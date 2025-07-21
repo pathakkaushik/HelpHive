@@ -8,7 +8,7 @@ const HelperCard = ({ helper }) => {
     <div className="group flex flex-col overflow-hidden rounded-lg border bg-slate-800/50 transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
       <div className="relative flex-shrink-0">
         <img className="h-56 w-full object-cover" src={helper.imageUrl} alt={helper.name} />
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+        <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/40"></div>
         <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
           <PlayCircle className="h-4 w-4" />
           <span>Intro Video</span>

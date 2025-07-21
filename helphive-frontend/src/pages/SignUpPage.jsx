@@ -26,7 +26,6 @@ const SignUpPage = () => {
             <div className="flex flex-col gap-4 rounded-md">
                <div>
                 <label htmlFor="full-name" className="sr-only">Full Name</label>
-                {/* Global input styles from index.css are applied automatically */}
                 <input id="full-name" name="name" type="text" required placeholder="Full Name" />
               </div>
               <div>
@@ -39,7 +38,7 @@ const SignUpPage = () => {
               </div>
             </div>
             <div>
-              <button type="submit" className="group relative flex w-full justify-center rounded-md bg-primary py-2.5 px-3 text-sm font-semibold text-white hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <button type="submit" className="flex w-full justify-center btn btn-primary">
                 Create Account
               </button>
             </div>

@@ -23,7 +23,6 @@ const LoginPage = () => {
             </p>
           </div>
           <form className="mt-8 space-y-6" action="#" method="POST">
-            {/* The input styles are now correctly inherited from index.css */}
             <div className="flex flex-col gap-4 rounded-md">
               <div>
                 <label htmlFor="email-address" className="sr-only">Email address</label>
@@ -44,7 +43,7 @@ const LoginPage = () => {
               </div>
             </div>
             <div>
-              <button type="submit" className="group relative flex w-full justify-center rounded-md bg-primary py-2.5 px-3 text-sm font-semibold text-white hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <button type="submit" className="flex w-full justify-center btn btn-primary">
                 Sign in
               </button>
             </div>

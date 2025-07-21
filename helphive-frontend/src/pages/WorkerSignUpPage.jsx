@@ -69,7 +69,7 @@ const WorkerSignUpPage = () => {
                 </div>
             </div>
             <div className="pt-6">
-              <button type="submit" className="flex w-full justify-center rounded-md bg-primary py-2.5 px-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <button type="submit" className="flex w-full justify-center btn btn-primary">
                 Submit Application
               </button>
             </div>

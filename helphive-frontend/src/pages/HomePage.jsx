@@ -81,7 +81,7 @@ const HomePage = () => {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="mt-10 flex items-center justify-center gap-x-6"
                 >
-                    <Link to="/find" className="rounded-md bg-primary px-4 py-3 text-base font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                    <Link to="/find" className="btn btn-primary">
                         Find Help Now
                     </Link>
                     <Link to="/worker-signup" className="text-sm font-semibold leading-6 text-slate-200 transition-colors hover:text-white">
@@ -196,9 +196,9 @@ const HomePage = () => {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
                 <Link
-                    to="/worker-signup"
-                    className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-primary shadow-sm transition-transform hover:scale-105 hover:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
+                            to="/worker-signup"
+                            className="btn bg-white px-5 py-2.5 text-primary hover:-translate-y-px hover:shadow-lg focus:ring-white"
+                        >
                     Create a Worker Profile
                 </Link>
                 <Link to="/worker-login" className="text-sm font-semibold leading-6 text-white transition-opacity hover:opacity-80">

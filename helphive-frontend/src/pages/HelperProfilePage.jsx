@@ -32,7 +32,7 @@ const HelperProfilePage = () => {
           {/* Left Column (Sticky) */}
           <div className="lg:col-span-1 lg:sticky lg:top-28 self-start">
             <div className="rounded-lg bg-white p-6 shadow-xl">
-               <div className="flex flex-col items-center text-center">
+              <div className="flex flex-col items-center text-center">
                 <img className="h-40 w-40 rounded-full object-cover shadow-lg" src={helper.imageUrl} alt={helper.name} />
                 <h1 className="mt-4 text-3xl font-bold text-gray-900">{helper.name}</h1>
                 <p className="mt-1 text-xl font-medium text-primary">{helper.role}</p>
@@ -52,7 +52,7 @@ const HelperProfilePage = () => {
                 </div>
               </div>
               <div className="mt-6">
-                 <Link to="#" className="flex w-full items-center justify-center rounded-md bg-primary px-6 py-3 text-lg font-semibold text-white shadow-sm transition-transform hover:scale-105 hover:bg-primary-hover">
+                 <Link to="#" className="w-full btn btn-primary">
                   Book Interview
                 </Link>
               </div>

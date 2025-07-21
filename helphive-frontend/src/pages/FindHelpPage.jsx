@@ -107,8 +107,8 @@ const FindHelpPage = () => {
                 </div>
                 {/* Clear Button */}
                 <div className="lg:col-span-1">
-                   <button onClick={clearFilters} className="flex h-full w-full items-center justify-center gap-2 rounded-md bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-600">
-                        <X className="h-4 w-4" />
+                   <button onClick={clearFilters} className="h-full w-full btn btn-subtle">
+                        <X className="h-4 w-4 mr-2" />
                         Clear
                     </button>
                 </div>
