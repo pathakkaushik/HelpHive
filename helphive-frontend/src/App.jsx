@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import WorkerSignUpPage from './pages/WorkerSignUpPage';
 import WorkerLoginPage from './pages/WorkerLoginPage';
+import AboutPage from './pages/AboutPage'; // Import new page
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/helper/:id" element={<HelperProfilePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/about" element={<AboutPage />} /> {/* Add new route */}
 
         {/* Worker Facing Routes */}
         <Route path="/worker-signup" element={<WorkerSignUpPage />} />
