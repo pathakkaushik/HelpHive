@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import VerificationBadge from '../components/VerificationBadge';
 import { helpers, reviewsData } from '../data/dummyData';
-import { Star, MapPin, Briefcase } from 'lucide-react';
+import { Star, MapPin, Briefcase, PlayCircle } from 'lucide-react';
 
 const HelperProfilePage = () => {
   const { id } = useParams();
   const helper = helpers.find(h => h.id === parseInt(id));
+  const [showVideo, setShowVideo] = useState(false);
 
   if (!helper) {
     return (
@@ -31,7 +32,7 @@ const HelperProfilePage = () => {
           {/* Left Column (Sticky) */}
           <div className="lg:col-span-1 lg:sticky lg:top-28 self-start">
             <div className="rounded-lg bg-white p-6 shadow-xl">
-              <div className="flex flex-col items-center text-center">
+               <div className="flex flex-col items-center text-center">
                 <img className="h-40 w-40 rounded-full object-cover shadow-lg" src={helper.imageUrl} alt={helper.name} />
                 <h1 className="mt-4 text-3xl font-bold text-gray-900">{helper.name}</h1>
                 <p className="mt-1 text-xl font-medium text-primary">{helper.role}</p>
@@ -61,6 +62,34 @@ const HelperProfilePage = () => {
           {/* Right Column (Scrollable) */}
           <div className="mt-12 lg:col-span-2 lg:mt-0">
             <div className="space-y-10">
+              {/* Video Player Section */}
+              <div className="rounded-lg bg-white p-8 shadow-xl">
+                <h2 className="text-2xl font-semibold text-gray-800">Video Introduction</h2>
+                <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-lg">
+                  {!showVideo ? (
+                    <>
+                      <img src={helper.profileVideoThumbnail} alt="Video thumbnail" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/30"></div>
+                      <button 
+                        onClick={() => setShowVideo(true)} 
+                        className="absolute inset-0 flex items-center justify-center text-white transition-transform hover:scale-110"
+                      >
+                        <PlayCircle size={80} className="drop-shadow-lg" />
+                      </button>
+                    </>
+                  ) : (
+                    <iframe
+                      src={helper.videoUrl + '?autoplay=1'}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="h-full w-full"
+                    ></iframe>
+                  )}
+                </div>
+              </div>
+              
               {/* About Section */}
               <div className="rounded-lg bg-white p-8 shadow-xl">
                 <h2 className="text-2xl font-semibold text-gray-800">About Me</h2>
