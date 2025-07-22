@@ -6,18 +6,18 @@ import { Hexagon } from 'lucide-react';
 
 const SignUpPage = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900">
+    <div className="flex min-h-screen flex-col bg-[var(--color-bg)]">
       <Navbar />
       <main className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div>
-            <Hexagon className="mx-auto h-12 w-auto text-primary" fill="currentColor" />
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
+            <Hexagon className="mx-auto h-12 w-auto text-[var(--color-primary)]" fill="currentColor" />
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--color-text-strong)]">
               Create a new account
             </h2>
-            <p className="mt-2 text-center text-sm text-slate-400">
+            <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
               Already have an account?{' '}
-              <Link to="/login" className="font-medium text-primary hover:text-primary-hover">
+              <Link to="/login" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
                 Sign in
               </Link>
             </p>
@@ -42,8 +42,8 @@ const SignUpPage = () => {
                 Create Account
               </button>
             </div>
-             <p className="text-center text-xs text-slate-500">
-              By creating an account, you agree to our <a href="#" className="font-medium text-slate-300 hover:underline">Terms of Service</a>.
+             <p className="text-center text-xs text-[var(--color-text-muted)]">
+              By creating an account, you agree to our <a href="#" className="font-medium text-[var(--color-text)] hover:underline">Terms of Service</a>.
             </p>
           </form>
         </div>

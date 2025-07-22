@@ -6,18 +6,18 @@ import { Hexagon } from 'lucide-react';
 
 const LoginPage = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900">
+    <div className="flex min-h-screen flex-col bg-[var(--color-bg)]">
       <Navbar />
       <main className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div>
-            <Hexagon className="mx-auto h-12 w-auto text-primary" fill="currentColor" />
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
+            <Hexagon className="mx-auto h-12 w-auto text-[var(--color-primary)]" fill="currentColor" />
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--color-text-strong)]">
               Sign in to your account
             </h2>
-            <p className="mt-2 text-center text-sm text-slate-400">
+            <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
               Or{' '}
-              <Link to="/signup" className="font-medium text-primary hover:text-primary-hover">
+              <Link to="/signup" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
                 create an account
               </Link>
             </p>
@@ -35,11 +35,11 @@ const LoginPage = () => {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-primary focus:ring-primary focus:ring-offset-slate-900" />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">Remember me</label>
+                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-bg-component-subtle)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-[var(--color-text)]">Remember me</label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary hover:text-primary-hover">Forgot your password?</a>
+                <a href="#" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">Forgot your password?</a>
               </div>
             </div>
             <div>

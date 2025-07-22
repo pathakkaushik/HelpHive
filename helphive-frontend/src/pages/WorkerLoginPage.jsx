@@ -6,16 +6,16 @@ import { Hexagon } from 'lucide-react';
 
 const WorkerLoginPage = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900">
+    <div className="flex min-h-screen flex-col bg-[var(--color-bg)]">
       <Navbar />
       <main className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div>
-            <Hexagon className="mx-auto h-12 w-auto text-primary" fill="currentColor" />
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
+            <Hexagon className="mx-auto h-12 w-auto text-[var(--color-primary)]" fill="currentColor" />
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--color-text-strong)]">
               Worker Portal Login
             </h2>
-            <p className="mt-2 text-center text-sm text-slate-400">
+            <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
               Access your profile, job requests, and schedule.
             </p>
           </div>
@@ -31,16 +31,16 @@ const WorkerLoginPage = () => {
               </div>
             </div>
             <div className="text-sm text-center">
-                <a href="#" className="font-medium text-primary hover:text-primary-hover">Forgot your password?</a>
+                <a href="#" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">Forgot your password?</a>
             </div>
             <div>
               <button type="submit" className="flex w-full justify-center btn btn-primary">
                 Sign in to Worker Portal
               </button>
             </div>
-             <p className="text-center text-sm text-slate-400">
+             <p className="text-center text-sm text-[var(--color-text-muted)]">
                 Don't have a worker profile?{' '}
-                <Link to="/worker-signup" className="font-medium text-primary hover:text-primary-hover">
+                <Link to="/worker-signup" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
                     Register here
                 </Link>
             </p>
