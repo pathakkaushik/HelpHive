@@ -64,69 +64,51 @@ const getAllHelpers = asyncHandler(async (req, res) => {
 const getHelperProfile = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    if (!mongoose.isValidObjectId(id)) {
-        throw new ApiError(400, "Invalid helper ID");
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid helper ID format");
     }
+    
+    // Convert the string ID to a MongoDB ObjectId
+    const helperId = new mongoose.Types.ObjectId(id);
 
-    // Use an aggregation pipeline to fetch the helper and their review stats
     const helperProfilePipeline = [
-        // Stage 1: Match the specific helper by ID
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(id),
+                _id: helperId, // Use the ObjectId for matching
                 role: UserRolesEnum.WORKER,
             },
         },
-        // Stage 2: Join with the reviews collection
         {
             $lookup: {
-                from: "reviews", // the name of the reviews collection in MongoDB
+                from: "reviews",
                 localField: "_id",
                 foreignField: "helper",
                 as: "reviews",
             },
         },
-        // Stage 3: Calculate average rating and review count
         {
             $addFields: {
                 averageRating: { $ifNull: [{ $avg: "$reviews.rating" }, 0] },
                 reviewCount: { $size: "$reviews" },
             },
         },
-        // Stage 4: Project the fields we want to send to the frontend
         {
             $project: {
-                // Exclude sensitive data
                 password: 0,
                 refreshToken: 0,
-                // Include all other fields from the User model and the new calculated fields
-                fullName: 1,
-                profileImage: 1,
-                introVideo: 1,
-                coverImage: 1,
-                primaryService: 1,
-                experience: 1,
-                city: 1,
-                tagline: 1,
-                description: 1,
-                skills: 1,
-                isVerified: 1,
-                averageRating: 1,
-                reviewCount: 1,
-                reviews: 1, // You could also project and shape the reviews here
+                reviews: 0, // We don't need to send all reviews here, just the stats
             }
         }
     ];
 
-    const helperProfile = await User.aggregate(helperProfilePipeline);
+    const helperProfileArray = await User.aggregate(helperProfilePipeline);
 
-    if (!helperProfile || helperProfile.length === 0) {
+    if (!helperProfileArray || helperProfileArray.length === 0) {
         throw new ApiError(404, "Helper profile not found");
     }
 
-    // The aggregation returns an array, we need the first element
     return res.status(200).json(
-        new ApiResponse(200, helperProfile[0], "Helper profile fetched successfully")
+        new ApiResponse(200, helperProfileArray[0], "Helper profile fetched successfully")
     );
 });
 

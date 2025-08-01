@@ -59,10 +59,10 @@ const createBooking = asyncHandler(async (req, res) => {
 
 const updateBookingStatus = asyncHandler(async (req, res) => {
     const { bookingId } = req.params;
-    const { status } = req.body; // Expecting 'CONFIRMED' or 'REJECTED'
+    const { status: newStatus } = req.body; // Expecting 'CONFIRMED', 'REJECTED', or 'COMPLETED'
 
-    if (!Object.values(BookingStatusEnum).includes(status)) {
-        throw new ApiError(400, "Invalid booking status");
+    if (!Object.values(BookingStatusEnum).includes(newStatus)) {
+        throw new ApiError(400, "Invalid booking status provided");
     }
 
     if (!mongoose.isValidObjectId(bookingId)) {
@@ -74,17 +74,35 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Booking not found");
     }
 
-    // Only the helper can confirm/reject. The client can cancel.
-    // For now, we only implement the helper's action.
-    if (!booking.helper.equals(req.user._id)) {
-        throw new ApiError(403, "You are not authorized to update this booking's status");
+    const currentUser = req.user;
+    const currentStatus = booking.status;
+
+    // --- NEW, MORE ROBUST LOGIC ---
+    // A helper is trying to update the status.
+    if (currentUser._id.equals(booking.helper)) {
+        // A helper can accept/reject a PENDING request.
+        if (currentStatus === BookingStatusEnum.PENDING && (newStatus === BookingStatusEnum.CONFIRMED || newStatus === BookingStatusEnum.REJECTED)) {
+            booking.status = newStatus;
+        } 
+        // A helper can mark a CONFIRMED job as COMPLETED.
+        else if (currentStatus === BookingStatusEnum.CONFIRMED && newStatus === BookingStatusEnum.COMPLETED) {
+            booking.status = newStatus;
+        } 
+        else {
+            throw new ApiError(400, `Cannot change status from ${currentStatus} to ${newStatus} for this booking.`);
+        }
+    } 
+    // A client is trying to update the status (e.g., to CANCELLED in the future).
+    else if (currentUser._id.equals(booking.client)) {
+        // Future logic for cancellation can go here.
+        // For example: if (newStatus === BookingStatusEnum.CANCELLED) { ... }
+        throw new ApiError(403, "Clients are not currently permitted to change booking status.");
+    }
+    // The user is neither the client nor the helper.
+    else {
+        throw new ApiError(403, "You are not authorized to update this booking.");
     }
 
-    if (booking.status !== BookingStatusEnum.PENDING) {
-        throw new ApiError(400, `Booking is already ${booking.status.toLowerCase()} and cannot be changed.`);
-    }
-
-    booking.status = status;
     await booking.save({ validateBeforeSave: true });
 
     return res

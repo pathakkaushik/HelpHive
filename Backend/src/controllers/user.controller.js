@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
-import { UserRolesEnum } from "../constants.js";
+import { UserRolesEnum, WorkerAvailabilityEnum } from "../constants.js";
 
 // Helper function to generate tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -30,14 +30,14 @@ const registerUser = asyncHandler(async (req, res) => {
     fullName,
     email,
     password,
-    role, // This will be 'USER' or 'WORKER'
+    role,
     phone,
     primaryService,
     experience,
   } = req.body;
 
   // Basic validation
-  if ([fullName, email, password, role].some((field) => field?.trim() === "")) {
+  if ([fullName, email, password, role].some((field) => !field || field.trim() === "")) {
     throw new ApiError(400, "All required fields must be filled");
   }
 
@@ -47,23 +47,16 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with this email already exists");
   }
 
-  // Handle file upload for worker profile image
-  let profileImageLocalPath;
-  if (
-    req.files &&
-    Array.isArray(req.files.profileImage) &&
-    req.files.profileImage.length > 0
-  ) {
-    profileImageLocalPath = req.files.profileImage[0].path;
-  }
+  // --- ROBUST FILE HANDLING ---
+  // Check if the profileImage file was actually uploaded.
+  const profileImageLocalPath = req.files?.profileImage?.[0]?.path;
   
-  // Note: For simplicity, we are handling one image. Your worker signup form has one for 'id-upload'.
-  // You would name it accordingly in multer and handle it here.
-  // Example for ID proof: const idProofLocalPath = req.files.idProof[0].path;
-
-  const profileImage = profileImageLocalPath
-    ? await uploadOnCloudinary(profileImageLocalPath)
-    : null;
+  let profileImage = null; // Initialize as null
+  if (profileImageLocalPath) {
+    // Only try to upload to Cloudinary if a path exists
+    profileImage = await uploadOnCloudinary(profileImageLocalPath);
+  }
+  // --- END OF ROBUST FILE HANDLING ---
 
   // Create user object
   const user = await User.create({
@@ -71,7 +64,9 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     role,
-    profileImage: profileImage?.url || "",
+    // Use the URL from the uploaded image, or an empty string if it's null
+    profileImage: profileImage?.url || "", 
+    
     // Worker specific fields
     phone: role === UserRolesEnum.WORKER ? phone : undefined,
     primaryService:
@@ -240,9 +235,8 @@ const updateWorkerProfile = asyncHandler(async (req, res) => {
     if (tagline) worker.tagline = tagline;
     if (description) worker.description = description;
 
-    // Skills should be sent as a comma-separated string from the form
-    if (skills) {
-        worker.skills = skills.split(',').map(skill => skill.trim());
+    if (typeof skills === 'string') {
+        worker.skills = skills.split(',').map(skill => skill.trim()).filter(Boolean); // filter(Boolean) removes empty strings
     }
 
     if (availability && Object.values(WorkerAvailabilityEnum).includes(availability)) {
@@ -261,8 +255,8 @@ const updateWorkerProfile = asyncHandler(async (req, res) => {
             }
         }
 
-        // Add new images to the existing gallery
-        worker.galleryImages = [...worker.galleryImages, ...uploadedImageUrls];
+        const existingImages = Array.isArray(worker.galleryImages) ? worker.galleryImages : [];
+        worker.galleryImages = [...existingImages, ...uploadedImageUrls];
     }
     
     await worker.save({ validateBeforeSave: false });
