@@ -3,7 +3,9 @@ import {
     loginUser, 
     logoutUser, 
     registerUser, 
-    refreshAccessToken 
+    refreshAccessToken,
+    updateWorkerProfile, // Add this import
+    getCurrentUser
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -29,8 +31,16 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 // Secured Routes
-router.route("/logout").post(verifyJWT, logoutUser);
-router.route("/refresh-token").post(refreshAccessToken);
+router.use(verifyJWT); // Apply verifyJWT to all routes below
 
+router.route("/logout").post(logoutUser);
+router.route("/refresh-token").post(refreshAccessToken);
+router.route("/me").get(getCurrentUser); // Route to get current user details
+
+// Route for a worker to update their profile
+router.route("/me/profile").patch(
+    upload.fields([{ name: "galleryImages", maxCount: 5 }]), // Allow up to 5 gallery images
+    updateWorkerProfile
+);
 
 export default router;

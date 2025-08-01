@@ -4,8 +4,10 @@ import bcrypt from "bcrypt";
 import { 
     AvailableServiceTypes,
     AvailableUserRoles,
+    AvailableWorkerAvailabilities, // Import new availability enum
     ServiceTypesEnum,
     UserRolesEnum, 
+    WorkerAvailabilityEnum, // Import new availability enum
 } from "../constants.js";
 
 const userSchema = new Schema(
@@ -84,6 +86,16 @@ const userSchema = new Schema(
     //         ref: "Review",
     //     }
     // ]
+  },
+  {    availability: {
+      type: String,
+      enum: AvailableWorkerAvailabilities,
+      default: WorkerAvailabilityEnum.AVAILABLE,
+    },
+    galleryImages: {
+      type: [String], // Array of Cloudinary URLs
+      default: [],
+    },
   },
   {
     timestamps: true,

@@ -37,6 +37,9 @@ const Navbar = () => {
             <ThemeToggle />
             {user ? (
               <>
+                {user.role === 'ADMIN' && (
+                    <Link to="/admin" className="ml-4 rounded-md px-3 py-2 text-sm font-medium text-yellow-400 hover:text-yellow-300">Admin</Link>
+                )}
                 <Link to="/dashboard" className="ml-4 rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">Dashboard</Link>
                 <span className="ml-4 text-sm font-medium text-[var(--color-text)]">Hi, {user.fullName.split(' ')[0]}</span>
                 <button onClick={logout} className="ml-4 btn btn-secondary !py-1.5 !px-3">Logout</button>
@@ -64,11 +67,14 @@ const Navbar = () => {
             <Link to="/find" onClick={closeMenu} className="block rounded-md px-3 py-2 text-base font-medium text-[var(--color-text)] hover:bg-[var(--color-bg-component-subtle)] hover:text-[var(--color-primary)]">Find Help</Link>
             <div className="my-2 border-t border-[var(--color-border-subtle)]"></div>
             {user ? (
-              <>
-                  <Link to="/dashboard" onClick={closeMenu} className="block rounded-md px-3 py-2 text-base font-medium text-[var(--color-text)] hover:bg-[var(--color-bg-component-subtle)] hover:text-[var(--color-primary)]">Dashboard</Link>
-                  <button onClick={() => { logout(); closeMenu(); }} className="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-red-500 hover:bg-[var(--color-bg-component-subtle)]">Logout</button>
-              </>
-          ) : (
+                <>
+                    {user.role === 'ADMIN' && (
+                        <Link to="/admin" onClick={closeMenu} className="block rounded-md px-3 py-2 text-base font-medium text-yellow-400 hover:bg-[var(--color-bg-component-subtle)]">Admin Panel</Link>
+                    )}
+                    <Link to="/dashboard" onClick={closeMenu} className="block rounded-md px-3 py-2 text-base font-medium text-[var(--color-text)] hover:bg-[var(--color-bg-component-subtle)] hover:text-[var(--color-primary)]">Dashboard</Link>
+                    <button onClick={() => { logout(); closeMenu(); }} className="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-red-500 hover:bg-[var(--color-bg-component-subtle)]">Logout</button>
+                </>
+            ) : (
               <>
                 <Link to="/login" onClick={closeMenu} className="block rounded-md px-3 py-2 text-base font-medium text-[var(--color-text)] hover:bg-[var(--color-bg-component-subtle)] hover:text-[var(--color-primary)]">Login</Link>
                 <Link to="/signup" onClick={closeMenu} className="mt-1 block rounded-md bg-[var(--color-primary)] px-3 py-2 text-center text-base font-medium text-white hover:bg-[var(--color-primary-hover)]">Sign Up</Link>

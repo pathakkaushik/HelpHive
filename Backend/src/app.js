@@ -23,12 +23,14 @@ import userRouter from './routes/user.routes.js';
 import helperRouter from './routes/helper.routes.js';
 import bookingRouter from './routes/booking.routes.js';
 import reviewRouter from './routes/review.routes.js';
+import adminRouter from './routes/admin.routes.js';
 
 // --- ROUTES DECLARATION ---
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/helpers", helperRouter);
 app.use("/api/v1/bookings", bookingRouter);
 app.use("/api/v1/reviews", reviewRouter);
+app.use("/api/v1/admin", adminRouter);
 
 // Simple route for testing
 app.get("/", (req, res) => {

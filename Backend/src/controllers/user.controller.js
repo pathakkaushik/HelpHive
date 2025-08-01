@@ -215,10 +215,70 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 });
 
+const getCurrentUser = asyncHandler( async (req, res) => {
+    // req.user is available from the verifyJWT middleware
+    return res
+        .status(200)
+        .json(new ApiResponse(200, req.user, "User details fetched successfully"));
+});
+
+const updateWorkerProfile = asyncHandler(async (req, res) => {
+    const { fullName, tagline, description, skills, availability } = req.body;
+    const userId = req.user._id;
+
+    if (req.user.role !== UserRolesEnum.WORKER) {
+        throw new ApiError(403, "Only workers can update their profile.");
+    }
+
+    const worker = await User.findById(userId);
+    if (!worker) {
+        throw new ApiError(404, "Worker not found");
+    }
+
+    // Update text fields if they are provided
+    if (fullName) worker.fullName = fullName;
+    if (tagline) worker.tagline = tagline;
+    if (description) worker.description = description;
+
+    // Skills should be sent as a comma-separated string from the form
+    if (skills) {
+        worker.skills = skills.split(',').map(skill => skill.trim());
+    }
+
+    if (availability && Object.values(WorkerAvailabilityEnum).includes(availability)) {
+        worker.availability = availability;
+    }
+    
+    // Handle gallery image uploads
+    if (req.files && req.files.galleryImages) {
+        const galleryImageFiles = req.files.galleryImages;
+        const uploadedImageUrls = [];
+
+        for (const file of galleryImageFiles) {
+            const uploadedImage = await uploadOnCloudinary(file.path);
+            if (uploadedImage) {
+                uploadedImageUrls.push(uploadedImage.url);
+            }
+        }
+
+        // Add new images to the existing gallery
+        worker.galleryImages = [...worker.galleryImages, ...uploadedImageUrls];
+    }
+    
+    await worker.save({ validateBeforeSave: false });
+
+    const updatedWorker = await User.findById(userId).select("-password -refreshToken");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedWorker, "Profile updated successfully"));
+});
 
 export { 
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    getCurrentUser, // Export new function
+    updateWorkerProfile, // Export new function
 };

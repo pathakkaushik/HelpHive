@@ -4,8 +4,9 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BookingList from '../components/BookingList';
 import ReviewModal from '../components/ReviewModal';
+import ProfileManagement from '../components/ProfileManagement';
 import api from '../api/axios';
-import { Send, Inbox } from 'lucide-react';
+import { Send, Inbox, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
@@ -15,8 +16,19 @@ const DashboardPage = () => {
   const [receivedBookings, setReceivedBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('received');
+  const [activeTab, setActiveTab] = useState('sent');
   const [reviewingBooking, setReviewingBooking] = useState(null);
+
+  const isWorker = user?.role === 'WORKER';
+
+  useEffect(() => {
+    // Set default tab based on role
+    if (isWorker) {
+      setActiveTab('received');
+    } else {
+      setActiveTab('sent');
+    }
+  }, [isWorker]);
 
   const fetchBookings = useCallback(async () => {
     if (!user) return;
@@ -24,7 +36,7 @@ const DashboardPage = () => {
     setError('');
     try {
       const promises = [api.get('/bookings/sent')];
-      if (user.role === 'WORKER') {
+      if (isWorker) {
         promises.push(api.get('/bookings/received'));
       }
       
@@ -41,7 +53,7 @@ const DashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isWorker]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -54,7 +66,6 @@ const DashboardPage = () => {
   const handleUpdateStatus = async (bookingId, status) => {
     try {
         await api.patch(`/bookings/${bookingId}/status`, { status });
-        // Refetch all bookings to ensure data consistency
         fetchBookings();
     } catch (err) {
         console.error("Failed to update status:", err);
@@ -63,7 +74,6 @@ const DashboardPage = () => {
   };
 
   const handleReviewSuccess = () => {
-      // Refetch to show the "Review Submitted" status
       fetchBookings();
   };
 
@@ -79,7 +89,7 @@ const DashboardPage = () => {
     );
   }
 
-  const isWorker = user?.role === 'WORKER';
+  const tabClass = (tabName) => `whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === tabName ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-text-muted)] hover:border-gray-300 hover:text-[var(--color-text)]'}`;
 
   return (
     <>
@@ -104,37 +114,28 @@ const DashboardPage = () => {
             
             {error && <p className="text-red-500 text-center bg-red-500/10 p-4 rounded-md">{error}</p>}
             
-            {isWorker && (
-              <div className="mb-6 border-b border-[var(--color-border)]">
-                  <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                      <button onClick={() => setActiveTab('received')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'received' ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-text-muted)] hover:border-gray-300 hover:text-[var(--color-text)]'}`}>
-                         <Inbox className="inline-block mr-2 h-5 w-5"/> Received Requests
-                      </button>
-                      <button onClick={() => setActiveTab('sent')} className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'sent' ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-text-muted)] hover:border-gray-300 hover:text-[var(--color-text)]'}`}>
-                         <Send className="inline-block mr-2 h-5 w-5"/> My Sent Requests
-                      </button>
-                  </nav>
-              </div>
-            )}
-
+            <div className="mb-6 border-b border-[var(--color-border)]">
+                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    {isWorker && (
+                        <button onClick={() => setActiveTab('received')} className={tabClass('received')}>
+                           <Inbox className="inline-block mr-2 h-5 w-5"/> Received Requests
+                        </button>
+                    )}
+                    <button onClick={() => setActiveTab('sent')} className={tabClass('sent')}>
+                       <Send className="inline-block mr-2 h-5 w-5"/> My Sent Requests
+                    </button>
+                    {isWorker && (
+                         <button onClick={() => setActiveTab('profile')} className={tabClass('profile')}>
+                           <User className="inline-block mr-2 h-5 w-5"/> My Profile
+                        </button>
+                    )}
+                </nav>
+            </div>
+            
             <div className="mt-8">
-                {isWorker ? (
-                  <>
-                      {activeTab === 'received' && (
-                          <BookingList bookings={receivedBookings} isWorker={true} onUpdateStatus={handleUpdateStatus} />
-                      )}
-                      {activeTab === 'sent' && (
-                          <BookingList bookings={sentBookings} isWorker={false} onLeaveReview={setReviewingBooking}/>
-                      )}
-                  </>
-                ) : (
-                   <div>
-                      <h2 className="text-2xl font-semibold text-[var(--color-text-strong)] mb-4 flex items-center gap-2">
-                         <Send size={24}/> My Sent Requests
-                      </h2>
-                      <BookingList bookings={sentBookings} isWorker={false} onLeaveReview={setReviewingBooking}/>
-                   </div>
-                )}
+              {activeTab === 'sent' && <BookingList bookings={sentBookings} isWorker={false} onLeaveReview={setReviewingBooking}/>}
+              {isWorker && activeTab === 'received' && <BookingList bookings={receivedBookings} isWorker={true} onUpdateStatus={handleUpdateStatus} />}
+              {isWorker && activeTab === 'profile' && <ProfileManagement />}
             </div>
           </div>
         </main>

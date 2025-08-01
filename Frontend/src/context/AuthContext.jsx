@@ -1,62 +1,95 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../api/axios'; // our configured axios instance
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    // This effect runs on initial app load to check if a user is already logged in
     useEffect(() => {
-        const verifyUser = async () => {
-            const accessToken = localStorage.getItem('accessToken');
-            if (accessToken) {
-                try {
-                    // You could have an endpoint like /users/me to verify the token and get user data
-                    // For now, we'll just parse the user from localStorage.
-                    // A robust solution would re-fetch user data on refresh.
-                    const storedUser = localStorage.getItem('user');
-                    if(storedUser) {
-                        setUser(JSON.parse(storedUser));
-                    }
-                } catch (error) {
-                    console.error("Session verification failed", error);
-                    logout(); // Clear invalid data
-                }
-            }
-            setLoading(false);
-        };
-        verifyUser();
+        // This effect runs once on app load to check for an existing session
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
     }, []);
 
     const login = async (email, password) => {
-        const response = await api.post('/users/login', { email, password });
-        const { user: userData, accessToken } = response.data.data;
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('accessToken', accessToken); // While cookies are httpOnly, storing this can be useful for auth headers if needed.
-        
-        setUser(userData);
-        return userData;
+        try {
+            const response = await api.post('/users/login', { email, password });
+            if (response.data.success) {
+                const { user: userData } = response.data.data;
+                localStorage.setItem('user', JSON.stringify(userData));
+                setUser(userData);
+                return userData;
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+            throw error; // Re-throw to be caught in the component
+        }
+    };
+    
+    const register = async (userData) => {
+        try {
+            // For user registration, we send JSON
+            const response = await api.post('/users/register', userData);
+            return response.data;
+        } catch (error) {
+             console.error("Registration failed:", error);
+            throw error;
+        }
+    };
+    
+    const registerWorker = async (formData) => {
+        try {
+            // For worker registration with file uploads, we send FormData
+            const response = await api.post('/users/register', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        } catch (error) {
+             console.error("Worker registration failed:", error);
+            throw error;
+        }
+    }
+
+    const updateUser = (newUserData) => {
+        // This function will be called after a successful profile update
+        setUser(newUserData);
+        localStorage.setItem('user', JSON.stringify(newUserData));
     };
 
     const logout = async () => {
         try {
             await api.post('/users/logout');
-        } catch(error) {
-            console.error("Logout failed, clearing client-side data anyway.", error);
+        } catch (error) {
+            console.error("Logout request failed, clearing data locally.", error);
         } finally {
             setUser(null);
             localStorage.removeItem('user');
-            localStorage.removeItem('accessToken');
+            // Redirect to home after logout
+            navigate('/');
         }
     };
-    
-    // You would add register functions here as well
+
+    const authValue = {
+        user,
+        loading,
+        login,
+        register,
+        registerWorker,
+        logout,
+        updateUser, // Export the new function
+    };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+        <AuthContext.Provider value={authValue}>
             {!loading && children}
         </AuthContext.Provider>
     );

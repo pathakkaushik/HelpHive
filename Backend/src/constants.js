@@ -16,3 +16,10 @@ export const ServiceTypesEnum = {
 };
 
 export const AvailableServiceTypes = Object.values(ServiceTypesEnum);
+
+export const WorkerAvailabilityEnum = {
+    AVAILABLE: "Available",
+    UNAVAILABLE: "Not Available",
+};
+
+export const AvailableWorkerAvailabilities = Object.values(WorkerAvailabilityEnum);

@@ -8,7 +8,7 @@ import { UserRolesEnum } from "../constants.js";
 // Controller to fetch all helpers with filtering
 const getAllHelpers = asyncHandler(async (req, res) => {
   // Extract filters from query parameters
-  const { searchTerm, locationTerm, service, verified } = req.query;
+  const { searchTerm, locationTerm, service, verified, availability } = req.query;
 
   // Start with a base query to only find users with the 'WORKER' role
   const query = { role: UserRolesEnum.WORKER };
@@ -35,6 +35,11 @@ const getAllHelpers = asyncHandler(async (req, res) => {
     query["isVerified.police"] = true;
   }
   
+  // Add the new availability filter logic
+  if (availability && availability !== 'All') {
+    query.availability = availability;
+  }
+  
   // To implement pagination, you would use req.query for page and limit,
   // then use .limit() and .skip() methods on the Mongoose query.
   // Example: const page = parseInt(req.query.page) || 1;
@@ -44,7 +49,7 @@ const getAllHelpers = asyncHandler(async (req, res) => {
 
   // Fetch helpers from the database
   const helpers = await User.find(query).select(
-    "-password -refreshToken -email" // Exclude sensitive fields
+    "-password -refreshToken"
   );
 
   // You might want to aggregate review data here in a more complex app

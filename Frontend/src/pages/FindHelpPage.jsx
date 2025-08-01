@@ -21,6 +21,7 @@ const initialFilters = {
   locationTerm: '',
   service: 'All',
   verified: false,
+  availability: 'All', // Add new availability filter
 };
 
 const FindHelpPage = () => {
@@ -32,12 +33,12 @@ const FindHelpPage = () => {
     const fetchHelpers = async () => {
       setLoading(true);
       try {
-        // Create a params object, removing any empty filters
         const params = new URLSearchParams();
         if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
         if (filters.locationTerm) params.append('locationTerm', filters.locationTerm);
         if (filters.service && filters.service !== 'All') params.append('service', filters.service);
         if (filters.verified) params.append('verified', filters.verified);
+        if (filters.availability && filters.availability !== 'All') params.append('availability', filters.availability);
 
         const response = await api.get(`/helpers?${params.toString()}`);
         setHelpers(response.data.data);
@@ -51,7 +52,7 @@ const FindHelpPage = () => {
 
     const debounceFetch = setTimeout(() => {
       fetchHelpers();
-    }, 300); // Debounce API calls
+    }, 300);
 
     return () => clearTimeout(debounceFetch);
   }, [filters]);
@@ -79,7 +80,7 @@ const FindHelpPage = () => {
 
         {/* Filters Section */}
         <div className="mb-10 rounded-lg border bg-[var(--color-bg-component)] p-6 shadow-lg">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                 <div className="relative lg:col-span-3">
                     <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-text-muted)]" />
                     <input
@@ -98,6 +99,13 @@ const FindHelpPage = () => {
                     <select name="service" className="w-full" value={filters.service} onChange={handleFilterChange}>
                         <option value="All">All Services</option>
                         {services.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                    </select>
+                </div>
+                <div className="lg:col-span-2">
+                    <select name="availability" className="w-full" value={filters.availability} onChange={handleFilterChange}>
+                        <option value="All">Any Availability</option>
+                        <option value="Available">Available</option>
+                        <option value="Not Available">Not Available</option>
                     </select>
                 </div>
                 <div className="flex items-center justify-center rounded-md bg-[var(--color-bg-component-subtle)] ring-1 ring-[var(--color-border)] lg:col-span-1">
