@@ -9,6 +9,7 @@ import WorkerSignUpPage from './pages/WorkerSignUpPage';
 import WorkerLoginPage from './pages/WorkerLoginPage';
 import AboutPage from './pages/AboutPage';
 import Chatbot from './components/Chatbot';
+import DashboardPage from './pages/DashboardPage';
 
 // Define the paths where the chatbot should NOT appear
 const authPaths = [
@@ -33,7 +34,7 @@ const AppContent = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/about" element={<AboutPage />} />
-
+        <Route path="/dashboard" element={<DashboardPage />} />
         {/* Worker Facing Routes */}
         <Route path="/worker-signup" element={<WorkerSignUpPage />} />
         <Route path="/worker-login" element={<WorkerLoginPage />} />
