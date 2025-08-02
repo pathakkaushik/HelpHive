@@ -4,14 +4,22 @@ import Footer from '../components/Footer';
 import { Hexagon, Upload } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+// UPDATED: Import the new, specific list for worker registration
+import { WorkerRegisterableServices } from '../constants/services'; 
 
-// Hardcoded for the dropdown, can be fetched from an API in the future
-const services = [
-    { name: 'Maid Service' },
-    { name: 'Cooking Service' },
-    { name: 'Babysitting' },
-    { name: 'Elderly Care' }
-];
+const pageVariants = {
+  initial: { opacity: 0, y: 20 },
+  in: { opacity: 1, y: 0 },
+  out: { opacity: 0, y: -20 },
+};
+
+const pageTransition = {
+  type: 'tween',
+  ease: 'anticipate',
+  duration: 0.5,
+};
 
 const WorkerSignUpPage = () => {
     const navigate = useNavigate();
@@ -21,12 +29,17 @@ const WorkerSignUpPage = () => {
         email: '',
         password: '',
         phone: '',
-        primaryService: services[0].name,
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        // UPDATED: Default to the first service in the specific worker list
+        primaryService: WorkerRegisterableServices[0], 
         experience: '',
     });
     const [profileImage, setProfileImage] = useState(null);
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,18 +50,28 @@ const WorkerSignUpPage = () => {
         setProfileImage(e.target.files[0]);
     };
 
+    const handleDragEvents = (e, dragging) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(dragging);
+    };
+
+    const handleDrop = (e) => {
+        handleDragEvents(e, false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setProfileImage(e.dataTransfer.files[0]);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
+        const toastId = toast.loading("Submitting application...");
 
         const data = new FormData();
-        data.append('fullName', formData.fullName);
-        data.append('email', formData.email);
-        data.append('password', formData.password);
-        data.append('phone', formData.phone);
-        data.append('primaryService', formData.primaryService);
-        data.append('experience', formData.experience);
+        for (const key in formData) {
+            data.append(key, formData[key]);
+        }
         data.append('role', 'WORKER');
         if (profileImage) {
             data.append('profileImage', profileImage);
@@ -56,9 +79,10 @@ const WorkerSignUpPage = () => {
         
         try {
             await registerWorker(data);
-            navigate('/worker-login', { state: { message: "Application submitted! Please log in to manage your profile." } });
+            toast.success("Application submitted! Please log in.", { id: toastId });
+            navigate('/worker-login');
         } catch (err) {
-            setError(err.response?.data?.message || 'Application submission failed.');
+            toast.error(err.response?.data?.message || 'Application submission failed.', { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -66,7 +90,14 @@ const WorkerSignUpPage = () => {
 
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--color-bg)]">
+    <motion.div 
+        className="flex min-h-screen flex-col bg-[var(--color-bg)]"
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+    >
       <Navbar />
       <main className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-2xl space-y-8">
@@ -83,39 +114,41 @@ const WorkerSignUpPage = () => {
             </p>
           </div>
           <form className="mt-8 space-y-6 rounded-lg border bg-[var(--color-bg-component)] p-8 shadow-lg" onSubmit={handleSubmit}>
-            {error && <p className="text-red-500 text-sm text-center bg-red-500/10 p-3 rounded-md mb-6">{error}</p>}
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Full Name</label><input type="text" name="fullName" required value={formData.fullName} onChange={handleChange} /></div>
+                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Phone Number</label><input type="tel" name="phone" required value={formData.phone} onChange={handleChange} /></div>
+                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Email</label><input type="email" name="email" required value={formData.email} onChange={handleChange} /></div>
+                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Password</label><input type="password" name="password" required value={formData.password} onChange={handleChange} /></div>
+                
+                <div className="col-span-full border-t border-[var(--color-border)] my-2"></div>
+                
+                <div className="sm:col-span-6"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Street Address</label><input type="text" name="street" required value={formData.street} onChange={handleChange} /></div>
+                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">City</label><input type="text" name="city" required value={formData.city} onChange={handleChange} /></div>
+                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">State</label><input type="text" name="state" required value={formData.state} onChange={handleChange} /></div>
+                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Zip Code</label><input type="text" name="zipCode" required value={formData.zipCode} onChange={handleChange} /></div>
+
+                <div className="col-span-full border-t border-[var(--color-border)] my-2"></div>
+
                 <div className="sm:col-span-3">
-                    <label htmlFor="fullName" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Full Name</label>
-                    <div className="mt-2"><input type="text" name="fullName" id="fullName" required value={formData.fullName} onChange={handleChange} /></div>
+                  <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Primary Service</label>
+                  {/* UPDATED: Dynamically generate options from the specific worker list */}
+                  <select name="primaryService" value={formData.primaryService} onChange={handleChange}>
+                    {WorkerRegisterableServices.map(service => (
+                      <option key={service} value={service}>{service}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="sm:col-span-3">
-                    <label htmlFor="phone" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Phone Number</label>
-                    <div className="mt-2"><input type="tel" name="phone" id="phone" required value={formData.phone} onChange={handleChange} /></div>
-                </div>
-                 <div className="sm:col-span-3">
-                    <label htmlFor="email" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Email</label>
-                    <div className="mt-2"><input type="email" name="email" id="email" required value={formData.email} onChange={handleChange} /></div>
-                </div>
-                 <div className="sm:col-span-3">
-                    <label htmlFor="password" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Password</label>
-                    <div className="mt-2"><input type="password" name="password" id="password" required value={formData.password} onChange={handleChange} /></div>
-                </div>
-                <div className="sm:col-span-3">
-                    <label htmlFor="primaryService" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Primary Service</label>
-                    <div className="mt-2">
-                      <select id="primaryService" name="primaryService" value={formData.primaryService} onChange={handleChange}>
-                          {services.map(s => <option key={s.name}>{s.name}</option>)}
-                      </select>
-                    </div>
-                </div>
-                 <div className="sm:col-span-3">
-                    <label htmlFor="experience" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Years of Experience</label>
-                     <div className="mt-2"><input type="number" name="experience" id="experience" required value={formData.experience} onChange={handleChange} /></div>
-                </div>
+                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Years of Experience</label><input type="number" name="experience" required value={formData.experience} onChange={handleChange} /></div>
+                
                 <div className="col-span-full">
-                    <label htmlFor="profileImage" className="block text-sm font-medium leading-6 text-[var(--color-text)]">Upload Profile Photo</label>
-                    <div className="mt-2 flex justify-center rounded-lg border border-dashed border-[var(--color-border)] px-6 py-10">
+                    <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Upload Profile Photo</label>
+                    <div 
+                        className={`mt-2 flex justify-center rounded-lg border border-dashed border-[var(--color-border)] px-6 py-10 transition-colors duration-300 ${isDragging ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)]' : ''}`}
+                        onDragEnter={(e) => handleDragEvents(e, true)}
+                        onDragOver={(e) => handleDragEvents(e, true)}
+                        onDragLeave={(e) => handleDragEvents(e, false)}
+                        onDrop={handleDrop}
+                    >
                         <div className="text-center">
                             <Upload className="mx-auto h-12 w-12 text-[var(--color-text-muted)]" />
                             <div className="mt-4 flex text-sm leading-6 text-[var(--color-text-muted)]">
@@ -141,7 +174,7 @@ const WorkerSignUpPage = () => {
         </div>
       </main>
       <Footer />
-    </div>
+    </motion.div>
   );
 };
 

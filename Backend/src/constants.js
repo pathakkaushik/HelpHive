@@ -13,6 +13,10 @@ export const ServiceTypesEnum = {
     COOK: "Cooking Service",
     BABYSITTER: "Babysitting",
     ELDERLY_CARE: "Elderly Care",
+    // --- ADD NEW SERVICES HERE ---
+    HOUSE_CLEANING: "House Cleaning",
+    DEEP_CLEANING: "Deep Cleaning",
+    PET_CARE: "Pet Care",
 };
 
 export const AvailableServiceTypes = Object.values(ServiceTypesEnum);

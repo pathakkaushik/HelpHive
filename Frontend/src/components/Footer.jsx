@@ -1,36 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Hexagon } from 'lucide-react';
+import { AvailableServiceTypes } from '../constants/services'; // <-- IMPORT SERVICES
+
+const footerLinks = [
+  {
+    title: 'Services',
+    // UPDATED: Dynamically create service links
+    links: AvailableServiceTypes.map(service => ({
+      name: service,
+      to: `/find?service=${encodeURIComponent(service)}`,
+    })),
+  },
+  {
+    title: 'Company',
+    links: [
+      { name: 'About Us', to: '/about' },
+      { name: 'Blog', to: '/blog' },
+      { name: 'Careers', to: '/careers' },
+    ],
+  },
+  {
+    title: 'For Professionals',
+    links: [
+      { name: 'Join as a Professional', to: '/worker-signup' },
+      { name: 'Worker Login', to: '/worker-login' },
+      { name: 'Partner Benefits', to: '/partner-benefits' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Privacy Policy', to: '/privacy-policy' },
+      { name: 'Terms of Service', to: '/terms-of-service' },
+    ],
+  },
+];
+
 
 const Footer = () => {
   return (
     <footer className="bg-[var(--color-bg-component)] border-t border-[var(--color-border-subtle)]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Services</h3>
-            <Link to="/find" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Maid Service</Link>
-            <Link to="/find" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Cooking Service</Link>
-            <Link to="/find" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Babysitting</Link>
-            <Link to="/find" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Elderly Care</Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Company</h3>
-            <Link to="/about" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">About Us</Link>
-            <a href="#" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Blog</a>
-            <a href="#" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Careers</a>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">For Professionals</h3>
-            <Link to="/worker-signup" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Join as a Professional</Link>
-            <Link to="/worker-login" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Worker Login</Link>
-            <a href="#" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Partner Benefits</a>
-          </div>
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Legal</h3>
-            <a href="#" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Privacy Policy</a>
-            <a href="#" className="text-base text-[var(--color-text)] hover:text-[var(--color-primary)]">Terms of Service</a>
-          </div>
+          
+          {footerLinks.map((column) => (
+            <div key={column.title} className="flex flex-col gap-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                {column.title}
+              </h3>
+              {column.links.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.to}
+                  className={`text-base text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors ${
+                    link.disabled ? 'opacity-50 cursor-not-allowed hover:text-[var(--color-text)]' : ''
+                  }`}
+                  // Prevent navigation for disabled links
+                  onClick={(e) => {
+                    if (link.disabled) e.preventDefault();
+                  }}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          ))}
+
         </div>
         <div className="mt-8 border-t border-[var(--color-border-subtle)] pt-8 md:flex md:items-center md:justify-between">
           <div className="flex items-center gap-2">

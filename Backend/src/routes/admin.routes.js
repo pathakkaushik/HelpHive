@@ -5,15 +5,16 @@ import {
     getAllUsers,
     getWorkerVerificationRequests,
     updateWorkerVerification,
+    getWorkerDetails,
 } from "../controllers/admin.controller.js"; // We will create this next
 
 const router = Router();
 
-// Apply JWT and Admin verification to all routes in this file
 router.use(verifyJWT, verifyAdmin);
 
 router.route("/users").get(getAllUsers);
 router.route("/verification-requests").get(getWorkerVerificationRequests);
+router.route("/worker/:workerId").get(getWorkerDetails); // New route to get full details, including documents
 router.route("/verify-worker/:workerId").patch(updateWorkerVerification);
 
 

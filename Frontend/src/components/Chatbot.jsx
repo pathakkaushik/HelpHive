@@ -1,30 +1,7 @@
-// This component has no backend integration and remains the same.
-// Included for completeness.
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send } from 'lucide-react';
-
-// A simple function to generate bot responses
-const getBotResponse = (userInput) => {
-  const text = userInput.toLowerCase();
-  if (text.includes("hello") || text.includes("hi")) {
-    return "Hello! How can I assist you with finding domestic help today?";
-  }
-  if (text.includes("pricing") || text.includes("fee")) {
-    return "Our service fee is typically one month's salary of the hired help. This includes verification and a replacement guarantee. For specifics, please sign up!";
-  }
-  if (text.includes("help") || text.includes("support")) {
-    return "You can find helpers by clicking 'Find Help' in the menu. Use the filters to search by location, service, and verification status.";
-  }
-  if (text.includes("verification") || text.includes("verified")) {
-    return "We conduct thorough ID and police verification for professionals to ensure your safety and peace of mind. Look for the verification badges on their profiles.";
-  }
-  if (text.includes("thank")) {
-    return "You're very welcome! Is there anything else I can help with?";
-  }
-  return "I'm not sure how to answer that. You can try asking about 'pricing', 'verification', or 'how to find help'.";
-};
-
+import { MessageSquare, X, Send, Loader } from 'lucide-react';
+import api from '../api/axios'; // Import your configured axios instance
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,6 +9,7 @@ const Chatbot = () => {
     { id: 1, text: 'Hi! I am the HelpHive Assistant. How can I help you?', sender: 'bot' },
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(false); // To track if the bot is "thinking"
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -42,19 +20,44 @@ const Chatbot = () => {
 
   const toggleOpen = () => setIsOpen(prev => !prev);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (inputValue.trim() === '') return;
+    if (inputValue.trim() === '' || loading) return;
 
     const userMessage = { id: Date.now(), text: inputValue, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
-    
-    setTimeout(() => {
-        const botMessage = { id: Date.now() + 1, text: getBotResponse(inputValue), sender: 'bot'};
-        setMessages(prev => [...prev, botMessage]);
-    }, 1000);
-    
     setInputValue('');
+    setLoading(true);
+
+    // Add a temporary "thinking" message for the bot
+    const thinkingMessageId = Date.now() + 1;
+    setMessages(prev => [...prev, { id: thinkingMessageId, sender: 'bot', thinking: true }]);
+
+    try {
+      // Call your new backend endpoint
+      const response = await api.post('/chatbot/query', {
+        message: inputValue,
+      });
+
+      const botReply = response.data.data.reply;
+
+      // Replace the "thinking" message with the actual reply
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === thinkingMessageId ? { ...msg, text: botReply, thinking: false } : msg
+        )
+      );
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Sorry, I'm having trouble connecting right now.";
+      // Replace the "thinking" message with an error message
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === thinkingMessageId ? { ...msg, text: errorMessage, thinking: false, error: true } : msg
+        )
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,15 +100,23 @@ const Chatbot = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-                   {msg.sender === 'bot' && <div className="h-8 w-8 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center text-lg">🐝</div>}
+                   {msg.sender === 'bot' && <div className="h-8 w-8 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center text-lg self-end">🐝</div>}
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
                       msg.sender === 'user'
                         ? 'bg-[var(--color-primary)] text-white rounded-br-none'
-                        : 'bg-[var(--color-bg-component-subtle)] text-[var(--color-text)] rounded-bl-none'
+                        : msg.error ? 'bg-red-500/20 text-red-300 rounded-bl-none' : 'bg-[var(--color-bg-component-subtle)] text-[var(--color-text)] rounded-bl-none'
                     }`}
                   >
-                    {msg.text}
+                    {msg.thinking ? (
+                      <div className="flex items-center gap-2">
+                        <motion.div className="h-2 w-2 bg-slate-400 rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }} />
+                        <motion.div className="h-2 w-2 bg-slate-400 rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }} />
+                        <motion.div className="h-2 w-2 bg-slate-400 rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }} />
+                      </div>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
                 </div>
               ))}
@@ -121,9 +132,10 @@ const Chatbot = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask a question..."
                   className="flex-1 !py-2"
+                  disabled={loading}
                 />
-                <button type="submit" className="btn btn-primary !rounded-lg !px-4 !py-2">
-                    <Send size={20}/>
+                <button type="submit" className="btn btn-primary !rounded-lg !px-4 !py-2" disabled={loading}>
+                    {loading ? <Loader className="h-5 w-5 animate-spin" /> : <Send size={20}/>}
                 </button>
               </form>
             </footer>

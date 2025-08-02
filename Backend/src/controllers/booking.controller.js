@@ -4,47 +4,54 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { UserRolesEnum } from "../constants.js";
+import { UserRolesEnum, WorkerAvailabilityEnum } from "../constants.js";
 
 const createBooking = asyncHandler(async (req, res) => {
-    // The user creating the booking is the client (from verifyJWT)
     const clientId = req.user._id;
-    const { helperId, bookingDate, message } = req.body;
+    const { helperId, bookingDate, bookingTime, message } = req.body;
 
-    if (!helperId || !bookingDate) {
-        throw new ApiError(400, "Helper ID and booking date are required");
+    if (!helperId || !bookingDate || !bookingTime) {
+        throw new ApiError(400, "Helper ID, booking date, and time are required");
     }
 
     if (!mongoose.isValidObjectId(helperId)) {
         throw new ApiError(400, "Invalid Helper ID format");
     }
 
-    // Check if the helper exists and is actually a worker
     const helper = await User.findById(helperId);
     if (!helper || helper.role !== UserRolesEnum.WORKER) {
         throw new ApiError(404, "Helper not found or is not a valid worker");
     }
 
-    // Prevent booking oneself
+    if (helper.availability === WorkerAvailabilityEnum.UNAVAILABLE) {
+        throw new ApiError(400, "This helper is currently not available for new bookings.");
+    }
+
     if (clientId.equals(helper._id)) {
         throw new ApiError(400, "You cannot book an interview with yourself");
     }
 
-    // Optional: Check for existing pending/confirmed bookings for the same helper to prevent duplicates
     const existingBooking = await Booking.findOne({
         client: clientId,
         helper: helperId,
-        status: { $in: [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED] },
+        status: { $in: [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED, BookingStatusEnum.COMPLETED] },
     });
 
     if (existingBooking) {
-        throw new ApiError(409, "You already have an active booking request with this helper.");
+        // Provide a more specific message based on the status
+        if (existingBooking.status === BookingStatusEnum.PENDING || existingBooking.status === BookingStatusEnum.CONFIRMED) {
+            throw new ApiError(409, "You already have an active booking request with this helper.");
+        }
+        if (existingBooking.status === BookingStatusEnum.COMPLETED) {
+            throw new ApiError(409, "You have already completed a job with this helper. You can book again if you need a new service.");
+            // Note: Business logic could be changed here to allow re-booking. For now, we restrict it.
+        }
     }
-
     const booking = await Booking.create({
         client: clientId,
         helper: helperId,
         bookingDate,
+        bookingTime,
         message,
     });
 
@@ -59,7 +66,7 @@ const createBooking = asyncHandler(async (req, res) => {
 
 const updateBookingStatus = asyncHandler(async (req, res) => {
     const { bookingId } = req.params;
-    const { status: newStatus } = req.body; // Expecting 'CONFIRMED', 'REJECTED', or 'COMPLETED'
+    const { status: newStatus } = req.body;
 
     if (!Object.values(BookingStatusEnum).includes(newStatus)) {
         throw new ApiError(400, "Invalid booking status provided");
@@ -77,14 +84,10 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
     const currentUser = req.user;
     const currentStatus = booking.status;
 
-    // --- NEW, MORE ROBUST LOGIC ---
-    // A helper is trying to update the status.
     if (currentUser._id.equals(booking.helper)) {
-        // A helper can accept/reject a PENDING request.
         if (currentStatus === BookingStatusEnum.PENDING && (newStatus === BookingStatusEnum.CONFIRMED || newStatus === BookingStatusEnum.REJECTED)) {
             booking.status = newStatus;
         } 
-        // A helper can mark a CONFIRMED job as COMPLETED.
         else if (currentStatus === BookingStatusEnum.CONFIRMED && newStatus === BookingStatusEnum.COMPLETED) {
             booking.status = newStatus;
         } 
@@ -92,13 +95,9 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
             throw new ApiError(400, `Cannot change status from ${currentStatus} to ${newStatus} for this booking.`);
         }
     } 
-    // A client is trying to update the status (e.g., to CANCELLED in the future).
     else if (currentUser._id.equals(booking.client)) {
-        // Future logic for cancellation can go here.
-        // For example: if (newStatus === BookingStatusEnum.CANCELLED) { ... }
         throw new ApiError(403, "Clients are not currently permitted to change booking status.");
     }
-    // The user is neither the client nor the helper.
     else {
         throw new ApiError(403, "You are not authorized to update this booking.");
     }
@@ -110,21 +109,16 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, booking, "Booking status updated successfully"));
 });
 
-
 const getBookingsWithDetails = async (matchStage) => {
     return await Booking.aggregate([
-        {
-            $match: matchStage
-        },
+        { $match: matchStage },
         {
             $lookup: {
                 from: "users",
                 localField: "client",
                 foreignField: "_id",
                 as: "clientDetails",
-                pipeline: [
-                    { $project: { fullName: 1, profileImage: 1, email: 1 } }
-                ]
+                pipeline: [{ $project: { fullName: 1, profileImage: 1, email: 1, phone: 1, address: 1 } }]
             }
         },
         {
@@ -133,66 +127,104 @@ const getBookingsWithDetails = async (matchStage) => {
                 localField: "helper",
                 foreignField: "_id",
                 as: "helperDetails",
-                pipeline: [
-                    { $project: { fullName: 1, profileImage: 1, email: 1, primaryService: 1 } }
-                ]
+                pipeline: [{ $project: { fullName: 1, profileImage: 1, email: 1, primaryService: 1 } }]
             }
         },
+        { $addFields: { client: { $first: "$clientDetails" }, helper: { $first: "$helperDetails" } } },
+        { $match: { client: { $ne: null }, helper: { $ne: null } } },
         {
-            $addFields: {
-                client: { $first: "$clientDetails" },
-                helper: { $first: "$helperDetails" }
-            }
-        },
-        {
+            // --- CORRECTED INCLUSION PROJECTION ---
+            // We are now building the final document shape field by field.
             $project: {
-                clientDetails: 0,
-                helperDetails: 0,
+                // Keep all the original booking fields
+                _id: 1,
+                status: 1,
+                bookingDate: 1,
+                bookingTime: 1,
+                message: 1,
+                review: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                
+                // Keep the populated helper object
+                helper: 1,
+                
+                // Build the new client object with conditional fields
+                client: {
+                    _id: "$client._id",
+                    fullName: "$client.fullName",
+                    profileImage: "$client.profileImage",
+                    email: {
+                        $cond: { if: { $eq: ["$status", BookingStatusEnum.PENDING] }, then: "[details hidden]", else: "$client.email" }
+                    },
+                    phone: {
+                        $cond: { if: { $eq: ["$status", BookingStatusEnum.PENDING] }, then: "[details hidden]", else: "$client.phone" }
+                    },
+                    address: {
+                        $cond: { if: { $eq: ["$status", BookingStatusEnum.PENDING] }, then: "[details hidden]", else: "$client.address" }
+                    }
+                }
             }
         },
-        {
-            $sort: { createdAt: -1 }
-        }
+        { $sort: { createdAt: -1 } }
     ]);
 };
 
-
-// For clients to see bookings they have made
 const getSentBookings = asyncHandler(async (req, res) => {
     const clientId = req.user._id;
     const bookings = await getBookingsWithDetails({ client: clientId });
-
-    if (!bookings) {
-        throw new ApiError(500, "Failed to retrieve sent bookings");
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, bookings, "Sent bookings fetched successfully"));
+    return res.status(200).json(new ApiResponse(200, bookings, "Sent bookings fetched successfully"));
 });
 
-// For helpers to see bookings they have received
 const getReceivedBookings = asyncHandler(async (req, res) => {
     if (req.user.role !== UserRolesEnum.WORKER) {
         throw new ApiError(403, "Only workers can view received bookings");
     }
-
     const helperId = req.user._id;
     const bookings = await getBookingsWithDetails({ helper: helperId });
+    return res.status(200).json(new ApiResponse(200, bookings, "Received bookings fetched successfully"));
+});
 
-     if (!bookings) {
-        throw new ApiError(500, "Failed to retrieve received bookings");
+const cancelBooking = asyncHandler(async (req, res) => {
+    const { bookingId } = req.params;
+    const currentUser = req.user;
+
+    if (!mongoose.isValidObjectId(bookingId)) {
+        throw new ApiError(400, "Invalid Booking ID format");
     }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+        throw new ApiError(404, "Booking not found");
+    }
+
+    // Only the client who made the booking OR the helper who received it can cancel
+    const isClient = currentUser._id.equals(booking.client);
+    const isHelper = currentUser._id.equals(booking.helper);
+
+    if (!isClient && !isHelper) {
+        throw new ApiError(403, "You are not authorized to cancel this booking.");
+    }
+    
+    // A booking can only be cancelled if it is PENDING or CONFIRMED
+    if (booking.status !== BookingStatusEnum.PENDING && booking.status !== BookingStatusEnum.CONFIRMED) {
+        throw new ApiError(400, `A booking that is already ${booking.status.toLowerCase()} cannot be cancelled.`);
+    }
+
+    booking.status = BookingStatusEnum.CANCELLED;
+    await booking.save({ validateBeforeSave: true });
+    
+    // TODO: In a real app, you would send a notification to the other party.
 
     return res
         .status(200)
-        .json(new ApiResponse(200, bookings, "Received bookings fetched successfully"));
+        .json(new ApiResponse(200, booking, "Booking has been cancelled."));
 });
-
 
 export {
     createBooking,
     updateBookingStatus,
     getSentBookings,
     getReceivedBookings,
+    cancelBooking, // Add new export
 };

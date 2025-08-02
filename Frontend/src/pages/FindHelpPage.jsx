@@ -5,13 +5,7 @@ import Footer from '../components/Footer';
 import HelperCard from '../components/HelperCard';
 import api from '../api/axios';
 import { Search, MapPin, X } from 'lucide-react';
-
-const services = [
-    { name: 'Maid Service' },
-    { name: 'Cooking Service' },
-    { name: 'Babysitting' },
-    { name: 'Elderly Care' }
-];
+import { AvailableServiceTypes } from '../constants/services'; // <-- IMPORT SERVICES
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1, }, }, };
 const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 }, };
@@ -21,7 +15,7 @@ const initialFilters = {
   locationTerm: '',
   service: 'All',
   verified: false,
-  availability: 'All', // Add new availability filter
+  availability: 'All',
 };
 
 const FindHelpPage = () => {
@@ -96,10 +90,13 @@ const FindHelpPage = () => {
                     />
                 </div>
                 <div className="lg:col-span-2">
-                    <select name="service" className="w-full" value={filters.service} onChange={handleFilterChange}>
-                        <option value="All">All Services</option>
-                        {services.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                    </select>
+                  {/* UPDATED: Dynamically generate options */}
+                  <select name="service" className="w-full" value={filters.service} onChange={handleFilterChange}>
+                      <option value="All">All Services</option>
+                      {AvailableServiceTypes.map(service => (
+                        <option key={service} value={service}>{service}</option>
+                      ))}
+                  </select>
                 </div>
                 <div className="lg:col-span-2">
                     <select name="availability" className="w-full" value={filters.availability} onChange={handleFilterChange}>
@@ -145,10 +142,10 @@ const FindHelpPage = () => {
                         name: helper.fullName,
                         imageUrl: helper.profileImage,
                         role: helper.primaryService,
-                        location: helper.city,
+                        location: helper.address?.city,
                         tagline: helper.tagline || 'Eager to help your family!',
-                        rating: 'N/A',
-                        reviews: 0,
+                        rating: helper.averageRating.toFixed(1),
+                        reviews: helper.reviewCount,
                         verified: helper.isVerified,
                         hasVideo: !!helper.introVideo,
                   }} />

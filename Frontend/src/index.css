@@ -73,18 +73,26 @@ html.dark {
   input[type="password"],
   input[type="tel"],
   input[type="number"],
-  select {
-    @apply w-full rounded-md border-0 bg-[var(--color-bg-component-subtle)] py-2.5 px-3 text-[var(--color-text-strong)] ring-1 ring-inset ring-[var(--color-border)] placeholder:text-[var(--color-text-muted)] focus:ring-2 focus:ring-inset focus:ring-[var(--color-primary)] sm:text-sm;
+  select,
+  textarea /* UPDATED: Added textarea here */
+  {
+    @apply w-full rounded-md border-0 bg-[var(--color-bg-component-subtle)] py-2.5 px-3 text-[var(--color-text-strong)] ring-1 ring-inset ring-[var(--color-border)] placeholder:text-[var(--color-text-muted)] focus:ring-2 focus:ring-inset focus:ring-[var(--color-primary)] sm:text-sm transition-shadow duration-200;
+    /* NEW: Add a subtle glow on focus */
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(var(--color-radial-gradient), 0.3);
+    }
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold shadow-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--color-bg)];
+    /* UPDATED: Added active state and transition */
+    @apply inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--color-bg)] active:scale-95;
   }
 
   .btn-primary {
-    @apply bg-gradient-to-br from-[var(--color-primary)] to-cyan-500 text-white hover:-translate-y-px hover:shadow-lg hover:shadow-primary/30 focus:ring-cyan-500;
+    /* UPDATED: Tweaked shadow for a better hover effect */
+    @apply bg-gradient-to-br from-[var(--color-primary)] to-cyan-500 text-white shadow-[var(--color-primary)]/20 shadow-md hover:-translate-y-px hover:shadow-lg hover:shadow-[var(--color-primary)]/40 focus:ring-cyan-500;
   }
 
   .btn-secondary {

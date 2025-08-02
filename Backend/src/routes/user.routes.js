@@ -4,7 +4,8 @@ import {
     logoutUser, 
     registerUser, 
     refreshAccessToken,
-    updateWorkerProfile, // Add this import
+    updateUserProfile, // Renamed from updateWorkerProfile
+    updateVerificationDocuments, // Add this import
     getCurrentUser
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -12,35 +13,36 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Registration route: uses multer to handle file uploads
 router.route("/register").post(
-  upload.fields([
-    {
-      name: "profileImage",
-      maxCount: 1,
-    },
-    // Add other fields like this e.g., for id proof
-    // {
-    //   name: "idProof",
-    //   maxCount: 1,
-    // }
-  ]),
+  upload.fields([{ name: "profileImage", maxCount: 1 }]),
   registerUser
 );
 
 router.route("/login").post(loginUser);
 
-// Secured Routes
-router.use(verifyJWT); // Apply verifyJWT to all routes below
+// --- Secured Routes ---
+router.use(verifyJWT);
 
 router.route("/logout").post(logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
-router.route("/me").get(getCurrentUser); // Route to get current user details
+router.route("/me").get(getCurrentUser);
 
-// Route for a worker to update their profile
+// Generic route for any user (user or worker) to update their profile
 router.route("/me/profile").patch(
-    upload.fields([{ name: "galleryImages", maxCount: 5 }]), // Allow up to 5 gallery images
-    updateWorkerProfile
+    upload.fields([
+        { name: "profileImage", maxCount: 1 },
+        { name: "galleryImages", maxCount: 5 }
+    ]),
+    updateUserProfile
+);
+
+// New route specifically for a worker to upload verification documents
+router.route("/me/verification-documents").patch(
+    upload.fields([
+        { name: "idProof", maxCount: 1 },
+        { name: "policeVerification", maxCount: 1 }
+    ]),
+    updateVerificationDocuments
 );
 
 export default router;

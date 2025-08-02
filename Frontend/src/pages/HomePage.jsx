@@ -160,7 +160,7 @@ const HomePage = () => {
                         name: helper.fullName,
                         imageUrl: helper.profileImage,
                         role: helper.primaryService,
-                        location: helper.city,
+                        location: helper.address?.city,
                         tagline: helper.tagline || 'Eager to help your family!',
                         rating: 'N/A', // Simplified for homepage, full data on profile page
                         reviews: 0,

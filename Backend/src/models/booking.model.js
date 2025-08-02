@@ -5,7 +5,7 @@ export const BookingStatusEnum = {
     CONFIRMED: "CONFIRMED",
     REJECTED: "REJECTED",
     COMPLETED: "COMPLETED",
-    CANCELLED: "CANCELLED", // Added for future use
+    CANCELLED: "CANCELLED", 
 };
 
 const bookingSchema = new Schema(
@@ -24,6 +24,10 @@ const bookingSchema = new Schema(
         },
         bookingDate: {
             type: Date,
+            required: true,
+        },
+        bookingTime: {
+            type: String, // Storing as a string like "14:30" for simplicity
             required: true,
         },
         message: {

@@ -3,6 +3,22 @@ import { Link } from 'react-router-dom';
 import { Hexagon } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook
+import { motion } from 'framer-motion'; // NEW: Import motion
+
+// NEW: Component for animated nav links
+const NavLink = ({ to, children }) => (
+  <motion.div whileHover={{ scale: 1.05 }} className="relative">
+    <Link to={to} className="block rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">
+      {children}
+    </Link>
+    <motion.div 
+      className="absolute bottom-0 left-0 h-0.5 bg-[var(--color-primary)]"
+      initial={{ width: 0 }}
+      whileHover={{ width: '100%' }}
+      transition={{ duration: 0.3 }}
+    />
+  </motion.div>
+);
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,9 +44,10 @@ const Navbar = () => {
             <span className="text-2xl font-bold text-[var(--color-text-strong)]">HelpHive</span>
           </Link>
           <div className="hidden md:block">
+            {/* UPDATED: Use the new NavLink component */}
             <div className="ml-10 flex items-baseline gap-4">
-              <Link to="/" className="rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">Home</Link>
-              <Link to="/find" className="rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">Find Help</Link>
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/find">Find Help</NavLink>
             </div>
           </div>
           <div className="hidden items-center md:flex">

@@ -5,6 +5,7 @@ import {
     getReceivedBookings,
     getSentBookings,
     updateBookingStatus,
+    cancelBooking,
 } from "../controllers/booking.controller.js"; // We will create this controller next
 
 const router = Router();
@@ -18,5 +19,6 @@ router.route("/sent").get(getSentBookings);
 router.route("/received").get(getReceivedBookings);
 
 router.route("/:bookingId/status").patch(updateBookingStatus);
+router.route("/:bookingId/cancel").patch(cancelBooking);
 
 export default router;

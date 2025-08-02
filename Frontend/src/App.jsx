@@ -9,9 +9,19 @@ import WorkerSignUpPage from './pages/WorkerSignUpPage';
 import WorkerLoginPage from './pages/WorkerLoginPage';
 import AboutPage from './pages/AboutPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminDashboardPage from './pages/AdminDashboardPage'; // Import Admin page
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import Chatbot from './components/Chatbot';
-import { Toaster } from 'react-hot-toast'; // Import Toaster
+import { Toaster } from 'react-hot-toast';
+import { AnimatePresence } from 'framer-motion';
+
+// Import new pages
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import CareersPage from './pages/CareersPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
+import PartnerBenefitsPage from './pages/PartnerBenefitsPage'; // <-- IMPORT NEW PAGE
+
 
 // Define the paths where the chatbot should NOT appear
 const authPaths = [
@@ -34,19 +44,30 @@ function App() {
           className: 'dark:bg-slate-700 dark:text-white',
         }}
       />
-      <Routes>
-        {/* All your Route components go here as before */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/find" element={<FindHelpPage />} />
-        <Route path="/helper/:id" element={<HelperProfilePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/worker-signup" element={<WorkerSignUpPage />} />
-        <Route path="/worker-login" element={<WorkerLoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Existing Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/find" element={<FindHelpPage />} />
+          <Route path="/helper/:id" element={<HelperProfilePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/worker-signup" element={<WorkerSignUpPage />} />
+          <Route path="/worker-login" element={<WorkerLoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          
+          {/* Static & Blog Routes */}
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/partner-benefits" element={<PartnerBenefitsPage />} /> {/* <-- ADD NEW ROUTE */}
+
+        </Routes>
+      </AnimatePresence>
       
       {showChatbot && <Chatbot />}
     </>

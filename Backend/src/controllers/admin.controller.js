@@ -56,9 +56,30 @@ const updateWorkerVerification = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, worker.isVerified, "Worker verification status updated"));
 });
 
+const getWorkerDetails = asyncHandler(async (req, res) => {
+    const { workerId } = req.params;
 
+    if (!mongoose.isValidObjectId(workerId)) {
+        throw new ApiError(400, "Invalid worker ID");
+    }
+    
+    // Fetch everything except sensitive fields
+    const worker = await User.findById(workerId).select("-password -refreshToken");
+
+    if (!worker || worker.role !== UserRolesEnum.WORKER) {
+        throw new ApiError(404, "Worker not found");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, worker, "Worker details fetched successfully"));
+});
+
+
+// Update your exports
 export {
     getAllUsers,
     getWorkerVerificationRequests,
     updateWorkerVerification,
+    getWorkerDetails, // Add new export
 };

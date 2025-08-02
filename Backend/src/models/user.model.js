@@ -4,11 +4,17 @@ import bcrypt from "bcrypt";
 import { 
     AvailableServiceTypes,
     AvailableUserRoles,
-    AvailableWorkerAvailabilities, // Import new availability enum
-    ServiceTypesEnum,
+    AvailableWorkerAvailabilities,
     UserRolesEnum, 
-    WorkerAvailabilityEnum, // Import new availability enum
+    WorkerAvailabilityEnum, 
 } from "../constants.js";
+
+const addressSchema = new Schema({
+    street: { type: String, required: true, trim: true },
+    city: { type: String, required: true, trim: true },
+    state: { type: String, required: true, trim: true },
+    zipCode: { type: String, required: true, trim: true },
+}, {_id: false});
 
 const userSchema = new Schema(
   {
@@ -31,7 +37,7 @@ const userSchema = new Schema(
     },
     phone: {
       type: String,
-      // Not required for regular users
+      required: true,
     },
     role: {
       type: String,
@@ -42,79 +48,58 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    address: {
+    type: addressSchema,
+    required: true, // Address is now mandatory for everyone
+    },
 
     // Worker-specific fields
     profileImage: {
-      type: String, // Cloudinary URL
-    },
-    introVideo: {
-        type: String, // Cloudinary URL
-    },
-    coverImage: { // For the video thumbnail
-        type: String, // Cloudinary URL
-    },
-    primaryService: {
-      type: String,
-      enum: AvailableServiceTypes,
-    },
-    experience: {
-      type: Number,
-      default: 0,
-    },
-    city: {
-      type: String,
-      trim: true,
-    },
-    tagline: {
-      type: String,
-      trim: true,
-    },
-    description: {
       type: String,
     },
-    skills: {
-      type: [String],
-      default: [],
-    },
+    introVideo: { type: String },
+    coverImage: { type: String },
+    primaryService: { type: String, enum: AvailableServiceTypes },
+    experience: { type: Number, default: 0 },
+    // We are removing the old 'city' field in favor of the address object
+    tagline: { type: String, trim: true },
+    description: { type: String },
+    skills: { type: [String], default: [] },
     isVerified: {
         id: { type: Boolean, default: false },
         police: { type: Boolean, default: false },
     },
-    // reviews: [ // We will handle this in the Review model
-    //     {
-    //         type: Schema.Types.ObjectId,
-    //         ref: "Review",
-    //     }
-    // ]
-  },
-  {    availability: {
+    availability: {
       type: String,
       enum: AvailableWorkerAvailabilities,
       default: WorkerAvailabilityEnum.AVAILABLE,
     },
     galleryImages: {
-      type: [String], // Array of Cloudinary URLs
+      type: [String],
       default: [],
     },
+    pricing: { // New field for worker pricing
+        rate: { type: Number }, // e.g., 500
+        per: { type: String, enum: ['hour', 'day', 'month'] } // e.g., 'hour'
+    },
+    verificationDocuments: { // New field for document uploads
+        idProof: { type: String }, // Cloudinary URL
+        policeVerification: { type: String } // Cloudinary URL
+    }
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Encrypt password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-// Method to check if password is correct
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// Method to generate access token
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -130,7 +115,6 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-// Method to generate refresh token
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
