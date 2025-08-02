@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Hexagon, Upload } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Hexagon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { AvailableServiceTypes } from '../constants/services'; // <-- IMPORT SERVICES
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -20,155 +19,124 @@ const pageTransition = {
   duration: 0.5,
 };
 
-const WorkerSignUpPage = () => {
-    const navigate = useNavigate();
-    const { registerWorker } = useAuth();
-    const [formData, setFormData] = useState({
-        fullName: '',
-        email: '',
-        password: '',
-        phone: '',
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        primaryService: AvailableServiceTypes[0], // Default to the first service in the list
-        experience: '',
-    });
-    const [profileImage, setProfileImage] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
+const formContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.2,
+      staggerChildren: 0.08,
+    },
+  },
+};
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({...prev, [name]: value}));
-    };
+const formItemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
-    const handleFileChange = (e) => {
-        setProfileImage(e.target.files[0]);
-    };
+const SignUpPage = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [formData, setFormData] = useState({
+    fullName: '', email: '', password: '', phone: '',
+    street: '', city: '', state: '', zipCode: '',
+  });
+  const [loading, setLoading] = useState(false);
 
-    const handleDragEvents = (e, dragging) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(dragging);
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-    const handleDrop = (e) => {
-        handleDragEvents(e, false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setProfileImage(e.dataTransfer.files[0]);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        const toastId = toast.loading("Submitting application...");
-
-        const data = new FormData();
-        for (const key in formData) {
-            data.append(key, formData[key]);
-        }
-        data.append('role', 'WORKER');
-        if (profileImage) {
-            data.append('profileImage', profileImage);
-        }
-        
-        try {
-            await registerWorker(data);
-            toast.success("Application submitted! Please log in.", { id: toastId });
-            navigate('/worker-login');
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Application submission failed.', { id: toastId });
-        } finally {
-            setLoading(false);
-        }
-    };
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const toastId = toast.loading("Creating account...");
+    try {
+      await register({ ...formData, role: 'USER' });
+      toast.success("Registration successful! Please log in.", { id: toastId });
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Registration failed.', { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <motion.div 
-        className="flex min-h-screen flex-col bg-[var(--color-bg)]"
-        initial="initial"
-        animate="in"
-        exit="out"
-        variants={pageVariants}
-        transition={pageTransition}
+    <motion.div
+      className="flex min-h-screen flex-col bg-[var(--color-bg)]"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
     >
       <Navbar />
       <main className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-2xl space-y-8">
-          <div>
+        <div className="w-full max-w-lg space-y-8">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
             <Hexagon className="mx-auto h-12 w-auto text-[var(--color-primary)]" fill="currentColor" />
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--color-text-strong)]">
-              Join HelpHive as a Professional
-            </h2>
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--color-text-strong)]">Create a new account</h2>
             <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
-              Start getting job requests from your area. Already registered?{' '}
-              <Link to="/worker-login" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
-                Login here
-              </Link>
+              Already have an account?{' '}
+              <Link to="/login" className="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">Sign in</Link>
             </p>
-          </div>
-          <form className="mt-8 space-y-6 rounded-lg border bg-[var(--color-bg-component)] p-8 shadow-lg" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Full Name</label><input type="text" name="fullName" required value={formData.fullName} onChange={handleChange} /></div>
-                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Phone Number</label><input type="tel" name="phone" required value={formData.phone} onChange={handleChange} /></div>
-                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Email</label><input type="email" name="email" required value={formData.email} onChange={handleChange} /></div>
-                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Password</label><input type="password" name="password" required value={formData.password} onChange={handleChange} /></div>
-                
-                <div className="col-span-full border-t border-[var(--color-border)] my-2"></div>
-                
-                <div className="sm:col-span-6"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Street Address</label><input type="text" name="street" required value={formData.street} onChange={handleChange} /></div>
-                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">City</label><input type="text" name="city" required value={formData.city} onChange={handleChange} /></div>
-                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">State</label><input type="text" name="state" required value={formData.state} onChange={handleChange} /></div>
-                <div className="sm:col-span-2"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Zip Code</label><input type="text" name="zipCode" required value={formData.zipCode} onChange={handleChange} /></div>
+          </motion.div>
+          <motion.form
+            className="mt-8 space-y-6 rounded-lg border bg-[var(--color-bg-component)] p-8 shadow-lg"
+            onSubmit={handleSubmit}
+            variants={formContainerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <motion.div variants={formItemVariants} className="md:col-span-2">
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Full Name</label>
+                <input name="fullName" type="text" required value={formData.fullName} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants}>
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Email address</label>
+                <input name="email" type="email" autoComplete="email" required value={formData.email} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants}>
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Password</label>
+                <input name="password" type="password" required value={formData.password} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants} className="md:col-span-2">
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Phone Number</label>
+                <input name="phone" type="tel" required value={formData.phone} onChange={handleChange} />
+              </motion.div>
 
-                <div className="col-span-full border-t border-[var(--color-border)] my-2"></div>
+              <motion.div variants={formItemVariants} className="md:col-span-2 mt-4 border-t border-[var(--color-border)] pt-4">
+                <h3 className="text-base font-semibold leading-6 text-[var(--color-text-strong)]">Mailing Address</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">This is required for all users for verification and security.</p>
+              </motion.div>
 
-                <div className="sm:col-span-3">
-                  <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Primary Service</label>
-                  {/* UPDATED: Dynamically generate options */}
-                  <select name="primaryService" value={formData.primaryService} onChange={handleChange}>
-                    {AvailableServiceTypes.map(service => (
-                      <option key={service} value={service}>{service}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-3"><label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Years of Experience</label><input type="number" name="experience" required value={formData.experience} onChange={handleChange} /></div>
-                
-                <div className="col-span-full">
-                    <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Upload Profile Photo</label>
-                    <div 
-                        className={`mt-2 flex justify-center rounded-lg border border-dashed border-[var(--color-border)] px-6 py-10 transition-colors duration-300 ${isDragging ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)]' : ''}`}
-                        onDragEnter={(e) => handleDragEvents(e, true)}
-                        onDragOver={(e) => handleDragEvents(e, true)}
-                        onDragLeave={(e) => handleDragEvents(e, false)}
-                        onDrop={handleDrop}
-                    >
-                        <div className="text-center">
-                            <Upload className="mx-auto h-12 w-12 text-[var(--color-text-muted)]" />
-                            <div className="mt-4 flex text-sm leading-6 text-[var(--color-text-muted)]">
-                                <label htmlFor="profileImage" className="relative cursor-pointer rounded-md bg-[var(--color-bg-component)] font-semibold text-[var(--color-primary)] focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:ring-offset-2 focus-within:ring-offset-[var(--color-bg-component)] hover:text-[var(--color-primary-hover)]">
-                                    <span>{profileImage ? 'File selected' : 'Upload a file'}</span>
-                                    <input id="profileImage" name="profileImage" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
-                                </label>
-                                <p className="pl-1">or drag and drop</p>
-                            </div>
-                            <p className="text-xs leading-5 text-[var(--color-text-muted)]/80">
-                                {profileImage ? profileImage.name : 'PNG, JPG up to 5MB'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+              <motion.div variants={formItemVariants} className="md:col-span-2">
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Street Address</label>
+                <input name="street" type="text" required value={formData.street} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants}>
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">City</label>
+                <input name="city" type="text" required value={formData.city} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants}>
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">State</label>
+                <input name="state" type="text" required value={formData.state} onChange={handleChange} />
+              </motion.div>
+              <motion.div variants={formItemVariants} className="col-span-full">
+                <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Zip Code</label>
+                <input name="zipCode" type="text" required value={formData.zipCode} onChange={handleChange} />
+              </motion.div>
             </div>
-            <div className="pt-6">
+            <motion.div variants={formItemVariants} className="pt-4">
               <button type="submit" className="flex w-full justify-center btn btn-primary" disabled={loading}>
-                {loading ? 'Submitting...' : 'Submit Application'}
+                {loading ? 'Creating Account...' : 'Create Account'}
               </button>
-            </div>
-          </form>
+            </motion.div>
+          </motion.form>
         </div>
       </main>
       <Footer />
@@ -176,4 +144,4 @@ const WorkerSignUpPage = () => {
   );
 };
 
-export default WorkerSignUpPage;
+export default SignUpPage;
