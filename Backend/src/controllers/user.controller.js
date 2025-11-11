@@ -89,7 +89,12 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
   
-    const options = { httpOnly: true, secure: process.env.NODE_ENV === "production" };
+    const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: ".onrender.com",
+        };
   
     return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options)
       .json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged In Successfully"));
@@ -97,7 +102,12 @@ const loginUser = asyncHandler(async (req, res) => {
   
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, { $set: { refreshToken: undefined } }, { new: true });
-    const options = { httpOnly: true, secure: process.env.NODE_ENV === "production" };
+    const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: ".onrender.com",
+        };
     return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
@@ -113,7 +123,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         if (incomingRefreshToken !== user?.refreshToken) throw new ApiError(401, "Refresh token is expired or used");
 
         const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id);
-        const options = { httpOnly: true, secure: process.env.NODE_ENV === "production" };
+        const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: ".onrender.com",
+        };
 
         return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", newRefreshToken, options)
           .json(new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, "Access token refreshed"));
