@@ -90,11 +90,10 @@ const loginUser = asyncHandler(async (req, res) => {
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
   
     const options = {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: ".onrender.com",
-        };
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+    };
   
     return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options)
       .json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged In Successfully"));
@@ -103,11 +102,10 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, { $set: { refreshToken: undefined } }, { new: true });
     const options = {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: ".onrender.com",
-        };
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+    };
     return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
@@ -127,7 +125,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            domain: ".onrender.com",
         };
 
         return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", newRefreshToken, options)
