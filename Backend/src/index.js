@@ -5,7 +5,7 @@ import { app } from "./app.js";
 dotenv.config({
   path: "./.env",
 });
-
+console.log("GEMINI KEY LOADED:", process.env.GOOGLE_GEMINI_API_KEY);
 connectDB()
   .then(() => {
     app.on("error", (error) => {
