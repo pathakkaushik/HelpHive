@@ -14,9 +14,10 @@ const useTheme = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    localStorage.setItem('theme', theme);
+    const activeTheme = (theme === 'light' || theme === 'dark') ? theme : 'dark';
+    localStorage.setItem('theme', activeTheme);
     root.classList.remove('light', 'dark');
-    root.classList.add(theme);
+    root.classList.add(activeTheme);
   }, [theme]);
 
   const toggleTheme = () => {

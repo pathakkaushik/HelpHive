@@ -96,16 +96,21 @@ const DashboardPage = () => {
       fetchBookings();
   };
   
-  const handleCancelBooking = async (bookingId) => {
-    if (window.confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) {
-        const toastId = toast.loading("Cancelling booking...");
+  const handleCancelBooking = async (bookingId, actionType = 'cancel') => {
+    const isTermination = actionType === 'terminate';
+    const confirmMessage = isTermination
+      ? "Are you sure you want to terminate this active contract with the helper? The worker will be released immediately."
+      : "Are you sure you want to cancel this booking request?";
+
+    if (window.confirm(confirmMessage)) {
+        const toastId = toast.loading(isTermination ? "Terminating contract..." : "Cancelling booking...");
         try {
             await api.patch(`/bookings/${bookingId}/cancel`);
-            toast.success("Booking cancelled.", { id: toastId });
+            toast.success(isTermination ? "Contract terminated successfully!" : "Booking cancelled.", { id: toastId });
             fetchBookings();
         } catch (err) {
-            console.error("Failed to cancel booking:", err);
-            toast.error(err.response?.data?.message || 'Failed to cancel booking.', { id: toastId });
+            console.error("Failed to cancel/terminate booking:", err);
+            toast.error(err.response?.data?.message || 'Failed to update booking.', { id: toastId });
         }
     }
   };

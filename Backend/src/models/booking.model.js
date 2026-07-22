@@ -30,6 +30,20 @@ const bookingSchema = new Schema(
             type: String, // Storing as a string like "14:30" for simplicity
             required: true,
         },
+        duration: {
+            type: String, // e.g., "1 Month", "3 Months", "6 Months", "1 Year", "1 Day"
+            default: "1 Month",
+        },
+        startDate: {
+            type: Date,
+        },
+        endDate: {
+            type: Date,
+        },
+        workShift: {
+            type: String, // e.g., "Full Time (8 Hours)", "Live-in (24 Hours)", "Part Time (4 Hours)"
+            default: "Full Time (8 Hours)",
+        },
         message: {
             type: String,
             trim: true,

@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import path from "path";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -11,24 +12,40 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
-    // Upload the file on cloudinary
-    const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-    });
-    // File has been uploaded successfully
-    
-    // Check if file exists before unlinking
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
+
+    // Try Cloudinary upload
+    try {
+      const response = await cloudinary.uploader.upload(localFilePath, {
+        resource_type: "auto",
+      });
+
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+      return response;
+    } catch (cloudinaryErr) {
+      console.warn("Cloudinary upload failed/disabled, storing file locally:", cloudinaryErr.message);
+
+      // Fallback: Copy to public/uploads directory
+      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const fileName = `${Date.now()}_${path.basename(localFilePath).replace(/\s+/g, '_')}`;
+      const destPath = path.join(uploadsDir, fileName);
+      fs.copyFileSync(localFilePath, destPath);
+
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+
+      const port = process.env.PORT || 8000;
+      const localUrl = `http://localhost:${port}/uploads/${fileName}`;
+      return { url: localUrl, secure_url: localUrl };
     }
-    
-    return response;
   } catch (error) {
-    // Check if file exists before trying to unlink in case of an error
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath); // remove the locally saved temporary file as the upload operation got failed
-    }
-    console.error("Cloudinary upload failed:", error);
+    console.error("Upload error:", error);
     return null;
   }
 };

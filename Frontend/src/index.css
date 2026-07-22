@@ -1,42 +1,42 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   /* Default variables (Light Mode) */
-  --color-primary: theme(colors.teal.600);
-  --color-primary-hover: theme(colors.teal.700);
-  --color-secondary: theme(colors.pink.500);
+  --color-primary: #0d9488;
+  --color-primary-hover: #0f766e;
+  --color-secondary: #ec4899;
 
   --font-family-sans: "Inter", "system-ui", "sans-serif";
   
-  --color-bg: theme(colors.slate.100);
-  --color-text: theme(colors.slate.700);
-  --color-text-strong: theme(colors.slate.900);
-  --color-text-muted: theme(colors.slate.500);
+  --color-bg: #f8fafc;
+  --color-text: #334155;
+  --color-text-strong: #0f172a;
+  --color-text-muted: #64748b;
 
-  --color-bg-component: theme(colors.white);
-  --color-bg-component-subtle: theme(colors.slate.200);
+  --color-bg-component: #ffffff;
+  --color-bg-component-subtle: #e2e8f0;
 
-  --color-border: theme(colors.slate.300);
-  --color-border-subtle: theme(colors.slate.200);
+  --color-border: #cbd5e1;
+  --color-border-subtle: #e2e8f0;
 
   --color-radial-gradient: 22, 107, 107; /* teal-700 rgb */
 }
 
 html.dark {
   /* Dark Mode Overrides */
-  --color-primary: theme(colors.teal.500);
-  --color-primary-hover: theme(colors.teal.600);
+  --color-primary: #14b8a6;
+  --color-primary-hover: #0d9488;
   
-  --color-bg: theme(colors.slate.900);
-  --color-text: theme(colors.slate.300);
-  --color-text-strong: theme(colors.white);
-  --color-text-muted: theme(colors.slate.400);
+  --color-bg: #0f172a;
+  --color-text: #cbd5e1;
+  --color-text-strong: #ffffff;
+  --color-text-muted: #94a3b8;
 
-  --color-bg-component: theme(colors.slate.800);
-  --color-bg-component-subtle: theme(colors.slate.700);
+  --color-bg-component: #1e293b;
+  --color-bg-component-subtle: #334155;
 
-  --color-border: theme(colors.slate.700);
-  --color-border-subtle: theme(colors.slate.800);
+  --color-border: #334155;
+  --color-border-subtle: #1e293b;
   
   --color-radial-gradient: 22, 163, 164; /* teal-500 rgb */
 }

@@ -84,7 +84,7 @@ const AdminDashboardPage = () => {
                                                 <p className="text-sm text-[var(--color-text-muted)]">{worker.email}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
+                                         <div className="flex items-center gap-4 flex-wrap">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium text-sm">ID:</span>
                                                 <VerificationBadge type="id" isVerified={worker.isVerified.id} />
@@ -92,6 +92,10 @@ const AdminDashboardPage = () => {
                                              <div className="flex items-center gap-2">
                                                 <span className="font-medium text-sm">Police:</span>
                                                 <VerificationBadge type="police" isVerified={worker.isVerified.police} />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium text-sm">PAN:</span>
+                                                <VerificationBadge type="pan" isVerified={worker.isVerified.pan} />
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2">
@@ -106,6 +110,12 @@ const AdminDashboardPage = () => {
                                                 className={`btn btn-subtle !px-2 !py-1 text-xs ${worker.isVerified.police ? 'text-red-500' : 'text-blue-500'}`}
                                             >
                                                  {worker.isVerified.police ? <ShieldX size={14} className="mr-1" /> : <ShieldCheck size={14} className="mr-1" />} Toggle Police
+                                            </button>
+                                            <button 
+                                                onClick={() => handleVerification(worker._id, { panVerified: !worker.isVerified.pan })}
+                                                className={`btn btn-subtle !px-2 !py-1 text-xs ${worker.isVerified.pan ? 'text-red-500' : 'text-purple-500'}`}
+                                            >
+                                                 {worker.isVerified.pan ? <ShieldX size={14} className="mr-1" /> : <ShieldCheck size={14} className="mr-1" />} Toggle PAN
                                             </button>
                                         </div>
                                     </div>

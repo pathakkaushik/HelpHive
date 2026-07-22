@@ -16,6 +16,33 @@ const ProfileManagement = () => {
     const [profileImageFile, setProfileImageFile] = useState(null);
     const [galleryFiles, setGalleryFiles] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [aiGenerating, setAiGenerating] = useState(false);
+
+    const handleGenerateAiBio = async () => {
+        setAiGenerating(true);
+        const toastId = toast.loading("Generating AI Bio & Tagline...");
+        try {
+            const response = await api.post('/ai/generate-bio', {
+                primaryService: user?.primaryService || 'Cook',
+                experience: user?.experience || 3,
+                skills: formData.skills || 'Cooking, Cleaning, Hygiene',
+                city: formData.city || 'Mumbai'
+            });
+
+            const { tagline, description } = response.data.data;
+            setFormData(prev => ({
+                ...prev,
+                tagline: tagline || prev.tagline,
+                description: description || prev.description
+            }));
+            toast.success("✨ AI Tagline & Bio generated!", { id: toastId });
+        } catch (err) {
+            console.error("AI Bio Generation failed:", err);
+            toast.error("Failed to generate AI Bio.", { id: toastId });
+        } finally {
+            setAiGenerating(false);
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -86,15 +113,29 @@ const ProfileManagement = () => {
             <form onSubmit={handleSubmit} className="space-y-6 divide-y divide-[var(--color-border)]">
                 
                 <section className="pt-6">
-                    <h3 className="text-lg font-medium text-[var(--color-text-strong)]">Personal Info</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <h3 className="text-lg font-medium text-[var(--color-text-strong)]">Personal Info & Profile Photo</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 items-center">
                         <div>
                             <label className="block text-sm font-medium">Full Name</label>
                             <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Profile Photo</label>
-                            <input type="file" name="profileImage" onChange={handleFileChange} accept="image/*" className="mt-2 w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
+                            <label className="block text-sm font-medium">Profile Photo Upload</label>
+                            <div className="mt-2 flex items-center gap-4">
+                                <img
+                                    src={profileImageFile ? URL.createObjectURL(profileImageFile) : (user?.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600')}
+                                    alt="Profile Preview"
+                                    className="h-16 w-16 rounded-full object-cover border-2 border-[var(--color-primary)] shadow-md"
+                                />
+                                <input
+                                    type="file"
+                                    name="profileImage"
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-[var(--color-primary)] file:text-white hover:file:bg-[var(--color-primary-hover)] cursor-pointer"
+                                />
+                            </div>
+                            {profileImageFile && <p className="text-xs text-green-400 mt-1">New photo selected: {profileImageFile.name}</p>}
                         </div>
                     </div>
                 </section>
@@ -124,7 +165,12 @@ const ProfileManagement = () => {
                 {isWorker && (
                     <>
                         <section className="pt-6">
-                            <h3 className="text-lg font-medium text-[var(--color-text-strong)]">Professional Details</h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-medium text-[var(--color-text-strong)]">Professional Details</h3>
+                                <button type="button" onClick={handleGenerateAiBio} disabled={aiGenerating} className="btn bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold flex items-center gap-1.5 !px-3 !py-1.5 shadow-md hover:from-purple-700 hover:to-indigo-700">
+                                    <span>✨ Generate Bio with AI</span>
+                                </button>
+                            </div>
                             <div className="space-y-4 mt-4">
                                 <div>
                                     <label className="block text-sm font-medium">Tagline / Short Bio</label>

@@ -19,7 +19,8 @@ const getWorkerVerificationRequests = asyncHandler(async (req, res) => {
         role: UserRolesEnum.WORKER,
         $or: [
             { "isVerified.id": false },
-            { "isVerified.police": false }
+            { "isVerified.police": false },
+            { "isVerified.pan": false }
         ]
     }).select("-password -refreshToken");
 
@@ -30,7 +31,7 @@ const getWorkerVerificationRequests = asyncHandler(async (req, res) => {
 
 const updateWorkerVerification = asyncHandler(async (req, res) => {
     const { workerId } = req.params;
-    const { idVerified, policeVerified } = req.body; // Expecting boolean values
+    const { idVerified, policeVerified, panVerified } = req.body; // Expecting boolean values
 
     if (!mongoose.isValidObjectId(workerId)) {
         throw new ApiError(400, "Invalid worker ID");
@@ -47,6 +48,9 @@ const updateWorkerVerification = asyncHandler(async (req, res) => {
     }
     if (typeof policeVerified === 'boolean') {
         worker.isVerified.police = policeVerified;
+    }
+    if (typeof panVerified === 'boolean') {
+        worker.isVerified.pan = panVerified;
     }
 
     await worker.save({ validateBeforeSave: false });

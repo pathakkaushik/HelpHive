@@ -48,17 +48,39 @@ const getAllHelpers = asyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: "bookings",
+        let: { helperId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$helper", "$$helperId"] },
+                  { $eq: ["$status", "CONFIRMED"] }
+                ]
+              }
+            }
+          }
+        ],
+        as: "confirmedBookings"
+      }
+    },
+    {
       $addFields: {
         averageRating: { $ifNull: [{ $avg: "$reviewsData.rating" }, 0] },
         reviewCount: { $size: "$reviewsData" },
+        isCurrentlyBooked: { $gt: [{ $size: "$confirmedBookings" }, 0] },
+        activeBookingInfo: { $first: "$confirmedBookings" }
       },
     },
     {
       $project: {
         password: 0,
         refreshToken: 0,
-        reviewsData: 0, // Don't send the full review objects to the list page
-        email: 0, // Also good to hide email on the public listing
+        reviewsData: 0,
+        confirmedBookings: 0,
+        email: 0,
       }
     }
   ];
@@ -120,13 +142,34 @@ const getHelperProfile = asyncHandler(async (req, res) => {
                         $project: { ownerDetails: 0 }
                     }
                 ]
-            },
+            }
+        },
+        {
+            $lookup: {
+                from: "bookings",
+                let: { helperId: "$_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ["$helper", "$$helperId"] },
+                                    { $eq: ["$status", "CONFIRMED"] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: "confirmedBookings"
+            }
         },
         // Stage 3: Calculate average rating and review count
         {
             $addFields: {
                 averageRating: { $ifNull: [{ $avg: "$reviews.rating" }, 0] },
                 reviewCount: { $size: "$reviews" },
+                isCurrentlyBooked: { $gt: [{ $size: "$confirmedBookings" }, 0] },
+                activeBookingInfo: { $first: "$confirmedBookings" }
             },
         },
         // Stage 4: Use blacklisting to remove sensitive fields
@@ -134,6 +177,7 @@ const getHelperProfile = asyncHandler(async (req, res) => {
             $project: {
                 password: 0,
                 refreshToken: 0,
+                confirmedBookings: 0,
                 "reviews.ownerDetails": 0 // Clean up any lingering sensitive data
             }
         }

@@ -8,7 +8,7 @@ import { UserRolesEnum, WorkerAvailabilityEnum } from "../constants.js";
 
 const createBooking = asyncHandler(async (req, res) => {
     const clientId = req.user._id;
-    const { helperId, bookingDate, bookingTime, message } = req.body;
+    const { helperId, bookingDate, bookingTime, message, duration, workShift, startDate, endDate } = req.body;
 
     if (!helperId || !bookingDate || !bookingTime) {
         throw new ApiError(400, "Helper ID, booking date, and time are required");
@@ -31,27 +31,52 @@ const createBooking = asyncHandler(async (req, res) => {
         throw new ApiError(400, "You cannot book an interview with yourself");
     }
 
-    const existingBooking = await Booking.findOne({
-        client: clientId,
+    // Check if helper already has an active CONFIRMED booking
+    const confirmedBooking = await Booking.findOne({
         helper: helperId,
-        status: { $in: [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED, BookingStatusEnum.COMPLETED] },
+        status: BookingStatusEnum.CONFIRMED,
     });
 
-    if (existingBooking) {
-        // Provide a more specific message based on the status
-        if (existingBooking.status === BookingStatusEnum.PENDING || existingBooking.status === BookingStatusEnum.CONFIRMED) {
-            throw new ApiError(409, "You already have an active booking request with this helper.");
-        }
-        if (existingBooking.status === BookingStatusEnum.COMPLETED) {
-            throw new ApiError(409, "You have already completed a job with this helper. You can book again if you need a new service.");
-            // Note: Business logic could be changed here to allow re-booking. For now, we restrict it.
-        }
+    if (confirmedBooking) {
+        throw new ApiError(409, "This helper is already hired and booked by another client.");
     }
+
+    const activeBooking = await Booking.findOne({
+        client: clientId,
+        helper: helperId,
+        status: { $in: [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED] },
+    });
+
+    if (activeBooking) {
+        throw new ApiError(409, "You already have an active or pending booking request with this helper.");
+    }
+
+    const start = startDate ? new Date(startDate) : new Date(bookingDate);
+    let end = endDate ? new Date(endDate) : new Date(start);
+    
+    // Auto-calculate end date if duration is provided
+    if (!endDate && duration) {
+        const daysMap = {
+            "1 Day": 1,
+            "1 Week": 7,
+            "1 Month": 30,
+            "3 Months": 90,
+            "6 Months": 180,
+            "1 Year": 365,
+        };
+        const addedDays = daysMap[duration] || 30;
+        end.setDate(end.getDate() + addedDays);
+    }
+
     const booking = await Booking.create({
         client: clientId,
         helper: helperId,
         bookingDate,
         bookingTime,
+        duration: duration || "1 Month",
+        workShift: workShift || "Full Time (8 Hours)",
+        startDate: start,
+        endDate: end,
         message,
     });
 
@@ -104,6 +129,20 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
 
     await booking.save({ validateBeforeSave: true });
 
+    // Sync helper availability status
+    if (newStatus === BookingStatusEnum.CONFIRMED) {
+        await User.findByIdAndUpdate(booking.helper, { availability: WorkerAvailabilityEnum.UNAVAILABLE });
+    } else if (newStatus === BookingStatusEnum.COMPLETED || newStatus === BookingStatusEnum.REJECTED || newStatus === BookingStatusEnum.CANCELLED) {
+        const activeBookingsCount = await Booking.countDocuments({
+            helper: booking.helper,
+            _id: { $ne: booking._id },
+            status: BookingStatusEnum.CONFIRMED
+        });
+        if (activeBookingsCount === 0) {
+            await User.findByIdAndUpdate(booking.helper, { availability: WorkerAvailabilityEnum.AVAILABLE });
+        }
+    }
+
     return res
         .status(200)
         .json(new ApiResponse(200, booking, "Booking status updated successfully"));
@@ -133,23 +172,22 @@ const getBookingsWithDetails = async (matchStage) => {
         { $addFields: { client: { $first: "$clientDetails" }, helper: { $first: "$helperDetails" } } },
         { $match: { client: { $ne: null }, helper: { $ne: null } } },
         {
-            // --- CORRECTED INCLUSION PROJECTION ---
-            // We are now building the final document shape field by field.
             $project: {
-                // Keep all the original booking fields
                 _id: 1,
                 status: 1,
                 bookingDate: 1,
                 bookingTime: 1,
+                duration: 1,
+                startDate: 1,
+                endDate: 1,
+                workShift: 1,
                 message: 1,
                 review: 1,
                 createdAt: 1,
                 updatedAt: 1,
                 
-                // Keep the populated helper object
                 helper: 1,
                 
-                // Build the new client object with conditional fields
                 client: {
                     _id: "$client._id",
                     fullName: "$client.fullName",
@@ -214,11 +252,19 @@ const cancelBooking = asyncHandler(async (req, res) => {
     booking.status = BookingStatusEnum.CANCELLED;
     await booking.save({ validateBeforeSave: true });
     
-    // TODO: In a real app, you would send a notification to the other party.
+    // Sync helper availability status back to AVAILABLE if no other active confirmed bookings
+    const activeBookingsCount = await Booking.countDocuments({
+        helper: booking.helper,
+        _id: { $ne: booking._id },
+        status: BookingStatusEnum.CONFIRMED
+    });
+    if (activeBookingsCount === 0) {
+        await User.findByIdAndUpdate(booking.helper, { availability: WorkerAvailabilityEnum.AVAILABLE });
+    }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, booking, "Booking has been cancelled."));
+        .json(new ApiResponse(200, booking, "Contract / Booking has been terminated successfully."));
 });
 
 export {

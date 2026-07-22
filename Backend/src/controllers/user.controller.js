@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
   
     // 2. Update validation
     if (
-        [fullName, email, password, role, phone, street, city, state, zipCode].some((field) => !field || field.trim() === "")
+        [fullName, email, password, role, phone, street, city, state, zipCode].some((field) => field === undefined || field === null || String(field).trim() === "")
     ) {
       throw new ApiError(400, "All required fields must be filled: Name, Email, Password, Role, Phone, and full Address.");
     }
@@ -228,6 +228,14 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
         const policeUpload = await uploadOnCloudinary(req.files.policeVerification[0].path);
         if (policeUpload?.url) {
             worker.verificationDocuments.policeVerification = policeUpload.url;
+        }
+    }
+
+    // Handle PAN Card upload
+    if (req.files?.panCard?.[0]) {
+        const panUpload = await uploadOnCloudinary(req.files.panCard[0].path);
+        if (panUpload?.url) {
+            worker.verificationDocuments.panCard = panUpload.url;
         }
     }
 

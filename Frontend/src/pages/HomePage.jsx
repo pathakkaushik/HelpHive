@@ -48,7 +48,7 @@ const HomePage = () => {
             try {
                 // Fetch helpers and take the first 3 as featured
                 const response = await api.get('/helpers');
-                setFeaturedHelpers(response.data.data.slice(0, 3));
+                setFeaturedHelpers(Array.isArray(response?.data?.data) ? response.data.data.slice(0, 3) : []);
             } catch (error) {
                 console.error("Failed to fetch featured helpers:", error);
             }

@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Hexagon } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
+import SalaryCalculatorModal from './SalaryCalculatorModal';
+import EmergencySosModal from './EmergencySosModal';
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook
-import { motion } from 'framer-motion'; // NEW: Import motion
+import { motion } from 'framer-motion';
+import { Calculator, ShieldAlert } from 'lucide-react';
 
 // NEW: Component for animated nav links
 const NavLink = ({ to, children }) => (
@@ -23,6 +27,8 @@ const NavLink = ({ to, children }) => (
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showSalaryCalc, setShowSalaryCalc] = useState(false);
+  const [showSos, setShowSos] = useState(false);
   const { user, logout } = useAuth(); // Get user state and logout function
 
   useEffect(() => {
@@ -36,30 +42,47 @@ const Navbar = () => {
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <nav className={`sticky top-0 z-50 transition-colors duration-300 ${scrolled ? 'bg-[--color-bg]/80 backdrop-blur-lg shadow-lg dark:shadow-black/20 border-b border-[var(--color-border)]' : 'bg-transparent'}`}>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex flex-shrink-0 items-center gap-2" onClick={closeMenu}>
-            <Hexagon className="h-8 w-8 text-[var(--color-primary)]" fill="currentColor" />
-            <span className="text-2xl font-bold text-[var(--color-text-strong)]">HelpHive</span>
-          </Link>
-          <div className="hidden md:block">
-            {/* UPDATED: Use the new NavLink component */}
-            <div className="ml-10 flex items-baseline gap-4">
-              <NavLink to="/">Home</NavLink>
-              <NavLink to="/find">Find Help</NavLink>
+    <>
+      <SalaryCalculatorModal show={showSalaryCalc} onClose={() => setShowSalaryCalc(false)} />
+      <EmergencySosModal show={showSos} onClose={() => setShowSos(false)} />
+
+      <nav className={`sticky top-0 z-50 transition-colors duration-300 ${scrolled ? 'bg-[var(--color-bg)]/80 backdrop-blur-lg shadow-lg dark:shadow-black/20 border-b border-[var(--color-border)]' : 'bg-transparent'}`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <Link to="/" className="flex flex-shrink-0 items-center gap-2" onClick={closeMenu}>
+              <Hexagon className="h-8 w-8 text-[var(--color-primary)]" fill="currentColor" />
+              <span className="text-2xl font-bold text-[var(--color-text-strong)]">HelpHive</span>
+            </Link>
+            <div className="hidden md:block">
+              {/* UPDATED: Use the new NavLink component */}
+              <div className="ml-10 flex items-baseline gap-4">
+                <NavLink to="/">Home</NavLink>
+                <NavLink to="/find">Find Help</NavLink>
+                <button
+                  onClick={() => setShowSalaryCalc(true)}
+                  className="text-xs font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1 bg-teal-500/10 border border-teal-500/30 px-2.5 py-1 rounded-full"
+                >
+                  <Calculator size={13} /> Salary Estimator
+                </button>
+                <button
+                  onClick={() => setShowSos(true)}
+                  className="text-xs font-extrabold text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded-full animate-pulse"
+                >
+                  <ShieldAlert size={13} /> SOS Safety
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="hidden items-center md:flex">
-            <ThemeToggle />
-            {user ? (
+            <div className="hidden items-center md:flex gap-2">
+              <ThemeToggle />
+              {user && <NotificationBell />}
+              {user ? (
               <>
                 {user.role === 'ADMIN' && (
-                    <Link to="/admin" className="ml-4 rounded-md px-3 py-2 text-sm font-medium text-yellow-400 hover:text-yellow-300">Admin</Link>
+                    <Link to="/admin" className="ml-2 rounded-md px-3 py-2 text-sm font-medium text-yellow-400 hover:text-yellow-300">Admin</Link>
                 )}
-                <Link to="/dashboard" className="ml-4 rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">Dashboard</Link>
-                <span className="ml-4 text-sm font-medium text-[var(--color-text)]">Hi, {user.fullName.split(' ')[0]}</span>
-                <button onClick={logout} className="ml-4 btn btn-secondary !py-1.5 !px-3">Logout</button>
+                <Link to="/dashboard" className="ml-2 rounded-md px-3 py-2 text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)]">Dashboard</Link>
+                <span className="ml-2 text-sm font-medium text-[var(--color-text)]">Hi, {(user?.fullName || user?.name || user?.email || 'User').split(' ')[0]}</span>
+                <button onClick={logout} className="ml-2 btn btn-secondary !py-1.5 !px-3">Logout</button>
               </>
             ) : (
               <>
@@ -101,6 +124,7 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+  </>
   );
 };
 

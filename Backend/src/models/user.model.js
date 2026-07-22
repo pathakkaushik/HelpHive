@@ -68,6 +68,7 @@ const userSchema = new Schema(
     isVerified: {
         id: { type: Boolean, default: false },
         police: { type: Boolean, default: false },
+        pan: { type: Boolean, default: false },
     },
     availability: {
       type: String,
@@ -84,7 +85,8 @@ const userSchema = new Schema(
     },
     verificationDocuments: { // New field for document uploads
         idProof: { type: String }, // Cloudinary URL
-        policeVerification: { type: String } // Cloudinary URL
+        policeVerification: { type: String }, // Cloudinary URL
+        panCard: { type: String } // Cloudinary URL
     }
   },
   { timestamps: true }

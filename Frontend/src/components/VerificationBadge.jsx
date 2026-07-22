@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, BadgeCheck } from 'lucide-react';
+import { ShieldCheck, BadgeCheck, CreditCard } from 'lucide-react';
 
 const VerificationBadge = ({ type, isVerified }) => {
   if (!isVerified) return null;
@@ -14,6 +14,11 @@ const VerificationBadge = ({ type, isVerified }) => {
       icon: <BadgeCheck className="h-4 w-4 text-white" />,
       text: 'ID Verified',
       style: 'bg-green-500 text-white',
+    },
+    pan: {
+      icon: <CreditCard className="h-4 w-4 text-white" />,
+      text: 'PAN Verified',
+      style: 'bg-purple-600 text-white',
     },
   };
 

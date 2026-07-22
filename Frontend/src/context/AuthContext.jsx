@@ -10,12 +10,17 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // This effect runs once on app load to check for an existing session
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser && storedUser !== 'undefined') {
+                setUser(JSON.parse(storedUser));
+            }
+        } catch (error) {
+            console.error("Error loading user session from localStorage:", error);
+            localStorage.removeItem('user');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     const login = async (email, password) => {

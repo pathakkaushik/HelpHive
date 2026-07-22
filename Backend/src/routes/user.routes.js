@@ -40,7 +40,8 @@ router.route("/me/profile").patch(
 router.route("/me/verification-documents").patch(
     upload.fields([
         { name: "idProof", maxCount: 1 },
-        { name: "policeVerification", maxCount: 1 }
+        { name: "policeVerification", maxCount: 1 },
+        { name: "panCard", maxCount: 1 }
     ]),
     updateVerificationDocuments
 );
