@@ -151,7 +151,7 @@ const summarizeReviews = asyncHandler(async (req, res) => {
         }, "Review summary generated"));
     }
 
-    const reviewTexts = reviews.map(r => `"${r.comment}" (${r.rating}/5 stars)`).join("\n");
+    const reviewTexts = reviews.map(r => `"${r.content}" (${r.rating}/5 stars)`).join("\n");
     const systemPrompt = "Summarize the customer reviews into a 1-sentence highlight summary highlighting key strengths (e.g., punctuality, cooking quality, cleanliness). Be concise and encouraging.";
 
     const aiSummary = await callGeminiAI(`Reviews List:\n${reviewTexts}`, systemPrompt);

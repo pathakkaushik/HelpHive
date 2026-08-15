@@ -3,8 +3,8 @@ import { ShieldCheck, Award } from 'lucide-react';
 
 const TrustScoreBadge = ({ helper }) => {
   let score = 75; // base score
-  if (helper?.isVerified?.idProof) score += 10;
-  if (helper?.isVerified?.policeVerification) score += 10;
+  if (helper?.isVerified?.id || helper?.isVerified?.idProof) score += 10;
+  if (helper?.isVerified?.police || helper?.isVerified?.policeVerification) score += 10;
   if (helper?.isVerified?.pan) score += 5;
 
   let badgeTier = "Gold Verified";

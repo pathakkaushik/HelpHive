@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const WorkerLoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ const WorkerLoginPage = () => {
             if (user.role !== 'WORKER') {
                 setError('This login is for workers only. Please use the main login page.');
                 // Log them out if they are not a worker
-                await useAuth().logout();
+                await logout();
             } else {
                 navigate('/'); // Or a worker dashboard page
             }

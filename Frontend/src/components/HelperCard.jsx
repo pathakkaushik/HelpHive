@@ -9,8 +9,9 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69
 
 const HelperCard = ({ helper }) => {
   let imageSrc = helper.imageUrl || helper.profileImage;
+  const apiBase = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/api\/v1\/?$/, '');
   if (imageSrc && imageSrc.startsWith('/uploads/')) {
-    imageSrc = `http://localhost:8000${imageSrc}`;
+    imageSrc = `${apiBase}${imageSrc}`;
   }
   if (!imageSrc || imageSrc.trim() === '') {
     imageSrc = DEFAULT_AVATAR;

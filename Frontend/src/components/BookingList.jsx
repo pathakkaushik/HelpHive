@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Check, X, Clock, Star, MapPin, AlertTriangle, CreditCard, MessageSquare, Calendar, RefreshCw } from 'lucide-react';
-import EscrowModal from './EscrowModal';
 import DirectChatModal from './DirectChatModal';
 import AttendanceTracker from './AttendanceTracker';
 import { useNavigate } from 'react-router-dom';
@@ -80,7 +79,7 @@ const BookingList = ({ bookings, isWorker, onUpdateStatus, onLeaveReview, onCanc
                                 )}
                                 {isWorker && (
                                     <>
-                                        {booking.client.address === '[hidden]' ? (
+                                        {typeof booking.client?.address !== 'object' ? (
                                             <div className="flex items-center gap-2 p-3 rounded-md bg-yellow-500/10 text-yellow-300 text-xs">
                                                 <AlertTriangle size={16} />
                                                 <span>Accept the request to view the client's full address and contact details.</span>
@@ -88,7 +87,7 @@ const BookingList = ({ bookings, isWorker, onUpdateStatus, onLeaveReview, onCanc
                                         ) : (
                                             <p className="flex items-center gap-2">
                                                <MapPin size={16} className="text-[var(--color-text-muted)]" />
-                                               Client Location: <strong>{booking.client.address.city}, {booking.client.address.state}</strong>
+                                               Client Location: <strong>{booking.client?.address?.city || 'N/A'}, {booking.client?.address?.state || ''}</strong>
                                             </p>
                                         )}
                                     </>

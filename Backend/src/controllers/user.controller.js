@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { UserRolesEnum, WorkerAvailabilityEnum } from "../constants.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -120,7 +121,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         if (!user) throw new ApiError(401, "Invalid refresh token");
         if (incomingRefreshToken !== user?.refreshToken) throw new ApiError(401, "Refresh token is expired or used");
 
-        const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id);
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(user._id);
         const options = {
             httpOnly: true,
             secure: true,
@@ -213,6 +214,10 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
     const worker = await User.findById(userId);
     if (!worker) {
         throw new ApiError(404, "Worker not found");
+    }
+
+    if (!worker.verificationDocuments) {
+        worker.verificationDocuments = {};
     }
 
     // Handle ID Proof upload

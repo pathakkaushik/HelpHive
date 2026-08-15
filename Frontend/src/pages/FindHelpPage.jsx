@@ -218,7 +218,7 @@ const FindHelpPage = () => {
                         role: helper.primaryService,
                         location: helper.address?.city,
                         tagline: helper.tagline || 'Eager to help your family!',
-                        rating: helper.averageRating.toFixed(1),
+                        rating: (helper.averageRating || 0).toFixed(1),
                         reviews: helper.reviewCount,
                         verified: helper.isVerified,
                         hasVideo: !!helper.introVideo,
