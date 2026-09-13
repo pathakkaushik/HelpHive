@@ -11,7 +11,7 @@ const paymentSchema = new Schema({
         enum: ['HELD_IN_ESCROW', 'RELEASED_TO_WORKER', 'REFUNDED_TO_CLIENT'],
         default: 'HELD_IN_ESCROW'
     },
-    paymentMethod: { type: String, default: 'UPI / Razorpay' },
+    paymentMethod: { type: String, default: 'UPI / Direct' },
     transactionId: { type: String, required: true },
     contractTitle: { type: String, default: 'HelpHive Official Service Agreement' }
 }, { timestamps: true });

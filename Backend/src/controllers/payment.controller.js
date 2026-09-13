@@ -4,82 +4,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Payment } from "../models/payment.model.js";
 import { Booking } from "../models/booking.model.js";
 import { Notification } from "../models/notification.model.js";
-import Razorpay from "razorpay";
 import crypto from "crypto";
 
-// Initialize Razorpay Instance
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_HelpHive2026",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "HelpHiveRazorpaySecretKey2026",
-});
-
-// 1. Create Razorpay Order
-const createRazorpayOrder = asyncHandler(async (req, res) => {
-    const { amount = 500 } = req.body;
-
-    const options = {
-        amount: Number(amount) * 100, // Razorpay amount in paise (e.g. 50000 paise = ₹500)
-        currency: "INR",
-        receipt: `receipt_hh_${Date.now()}`,
-    };
-
-    try {
-        const order = await razorpayInstance.orders.create(options);
-        return res.status(200).json(new ApiResponse(200, {
-            order,
-            keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_HelpHive2026"
-        }, "Razorpay order created successfully"));
-    } catch (err) {
-        console.warn("Razorpay API order creation warning, generating fallback order ID:", err.message);
-        // Fallback simulated Order for demo/testing
-        const fallbackOrder = {
-            id: `order_hh_${Date.now()}`,
-            entity: "order",
-            amount: Number(amount) * 100,
-            currency: "INR",
-            receipt: `receipt_hh_${Date.now()}`,
-            status: "created"
-        };
-        return res.status(200).json(new ApiResponse(200, {
-            order: fallbackOrder,
-            keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_HelpHive2026"
-        }, "Fallback Razorpay order created"));
-    }
-});
-
-// 2. Verify Razorpay Payment Signature
-const verifyRazorpayPayment = asyncHandler(async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId, amount = 500 } = req.body;
-    const clientId = req.user._id;
-
-    const transactionId = razorpay_payment_id || `HH_RZP_${Date.now()}`;
-
-    let booking = null;
-    if (bookingId) {
-        booking = await Booking.findById(bookingId);
-    }
-
-    const payment = await Payment.create({
-        client: clientId,
-        helper: booking ? booking.helper : clientId,
-        booking: bookingId || clientId,
-        amount: Number(amount),
-        status: 'HELD_IN_ESCROW',
-        paymentMethod: 'Razorpay UPI / Cards Gateway',
-        transactionId
-    });
-
-    await Notification.create({
-        user: clientId,
-        title: "💳 Razorpay Escrow Deposit Successful",
-        message: `₹${amount} advance deposit held in Escrow via Razorpay (Txn ID: ${transactionId}).`,
-        type: 'PAYMENT'
-    });
-
-    return res.status(200).json(new ApiResponse(200, payment, "Razorpay payment verified and held in Escrow"));
-});
-
-// 3. Process Advance Booking Deposit Escrow Payment (Direct)
+// 1. Process Advance Booking Deposit Escrow Payment (Direct)
 const createEscrowPayment = asyncHandler(async (req, res) => {
     const { bookingId, amount, paymentMethod } = req.body;
     const clientId = req.user._id;
@@ -101,7 +28,7 @@ const createEscrowPayment = asyncHandler(async (req, res) => {
         booking: booking._id,
         amount: amount || 500,
         status: 'HELD_IN_ESCROW',
-        paymentMethod: paymentMethod || 'UPI / Razorpay',
+        paymentMethod: paymentMethod || 'UPI / Direct',
         transactionId
     });
 
@@ -124,7 +51,7 @@ const createEscrowPayment = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, payment, "Advance deposit held in Escrow successfully"));
 });
 
-// 4. Fetch Escrow Payment Details for Booking
+// 2. Fetch Escrow Payment Details for Booking
 const getBookingPayment = asyncHandler(async (req, res) => {
     const { bookingId } = req.params;
 
@@ -139,7 +66,7 @@ const getBookingPayment = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, payment, "Payment details fetched successfully"));
 });
 
-// 5. Release or Refund Escrow Payment
+// 3. Release or Refund Escrow Payment
 const updateEscrowStatus = asyncHandler(async (req, res) => {
     const { paymentId } = req.params;
     const { action } = req.body; // 'RELEASE' or 'REFUND'
@@ -173,8 +100,6 @@ const updateEscrowStatus = asyncHandler(async (req, res) => {
 });
 
 export {
-    createRazorpayOrder,
-    verifyRazorpayPayment,
     createEscrowPayment,
     getBookingPayment,
     updateEscrowStatus

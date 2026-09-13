@@ -67,7 +67,7 @@ app.use("/api/v1/ai", aiRouter); // Advanced Gemini AI Features (Matchmaker, Bio
 app.use("/api/v1/attendance", attendanceRouter); // Worker Daily Check-In/Check-Out Tracker
 app.use("/api/v1/chats", chatRouter); // Direct Messaging & 1-Click Video Calls
 app.use("/api/v1/notifications", notificationRouter); // Real-Time In-App Alerts & Notifications
-app.use("/api/v1/payment", paymentRouter); // Escrow Payment Contracts & Razorpay Gateway Integration
+app.use("/api/v1/payment", paymentRouter); // Escrow Payment Contracts & Direct Payment Gateway
 
 /**
  * Global Express Error Handling Middleware

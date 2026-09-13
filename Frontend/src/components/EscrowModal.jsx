@@ -127,7 +127,7 @@ HelpHive Verification Seal: [VERIFIED & STAMPED]
                     className="mt-2"
                   >
                     <option value="UPI / GPay">UPI / Google Pay / PhonePe / Paytm</option>
-                    <option value="Debit / Credit Card">Debit / Credit Card (Razorpay)</option>
+                    <option value="Debit / Credit Card">Debit / Credit Card</option>
                     <option value="Net Banking">Net Banking</option>
                   </select>
                 </div>
