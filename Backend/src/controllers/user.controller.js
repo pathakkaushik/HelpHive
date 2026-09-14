@@ -229,12 +229,12 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
 
     // Handle ID Proof upload
     if (req.files?.idProof?.[0]) {
-        const filePath = req.files.idProof[0].path;
-        const aiCheck = await validateDocumentWithAI(filePath, "ID Proof (Aadhaar / Voter ID)");
+        const file = req.files.idProof[0];
+        const aiCheck = await validateDocumentWithAI(file.path, file.originalname, "ID Proof (Aadhaar / Voter ID)");
         if (!aiCheck.isValid) {
             throw new ApiError(400, `AI Scanner Rejected ID Proof: ${aiCheck.reason}`);
         }
-        const idProofUpload = await uploadOnCloudinary(filePath);
+        const idProofUpload = await uploadOnCloudinary(file.path);
         if (idProofUpload?.url) {
             worker.verificationDocuments.idProof = idProofUpload.url;
         }
@@ -242,12 +242,12 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
 
     // Handle Police Verification upload
     if (req.files?.policeVerification?.[0]) {
-        const filePath = req.files.policeVerification[0].path;
-        const aiCheck = await validateDocumentWithAI(filePath, "Police Verification Certificate");
+        const file = req.files.policeVerification[0];
+        const aiCheck = await validateDocumentWithAI(file.path, file.originalname, "Police Verification Certificate");
         if (!aiCheck.isValid) {
             throw new ApiError(400, `AI Scanner Rejected Police Certificate: ${aiCheck.reason}`);
         }
-        const policeUpload = await uploadOnCloudinary(filePath);
+        const policeUpload = await uploadOnCloudinary(file.path);
         if (policeUpload?.url) {
             worker.verificationDocuments.policeVerification = policeUpload.url;
         }
@@ -255,12 +255,12 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
 
     // Handle PAN Card upload
     if (req.files?.panCard?.[0]) {
-        const filePath = req.files.panCard[0].path;
-        const aiCheck = await validateDocumentWithAI(filePath, "PAN Card");
+        const file = req.files.panCard[0];
+        const aiCheck = await validateDocumentWithAI(file.path, file.originalname, "PAN Card");
         if (!aiCheck.isValid) {
             throw new ApiError(400, `AI Scanner Rejected PAN Card: ${aiCheck.reason}`);
         }
-        const panUpload = await uploadOnCloudinary(filePath);
+        const panUpload = await uploadOnCloudinary(file.path);
         if (panUpload?.url) {
             worker.verificationDocuments.panCard = panUpload.url;
         }
