@@ -1,11 +1,21 @@
 import React from 'react';
-import { ShieldCheck, Award } from 'lucide-react';
+import { Award } from 'lucide-react';
 
 const TrustScoreBadge = ({ helper }) => {
+  const isIdVerified = Boolean(
+    helper?.isVerified?.id || helper?.verified?.id || helper?.isVerified?.idProof
+  );
+  const isPoliceVerified = Boolean(
+    helper?.isVerified?.police || helper?.verified?.police || helper?.isVerified?.policeVerification
+  );
+  const isPanVerified = Boolean(
+    helper?.isVerified?.pan || helper?.verified?.pan
+  );
+
   let score = 75; // base score
-  if (helper?.isVerified?.id || helper?.isVerified?.idProof) score += 10;
-  if (helper?.isVerified?.police || helper?.isVerified?.policeVerification) score += 10;
-  if (helper?.isVerified?.pan) score += 5;
+  if (isIdVerified) score += 10;
+  if (isPoliceVerified) score += 10;
+  if (isPanVerified) score += 5;
 
   let badgeTier = "Gold Verified";
   let badgeColor = "from-amber-500 to-yellow-400";

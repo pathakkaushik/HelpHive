@@ -71,9 +71,9 @@ const HelperCard = ({ helper }) => {
             <span className="ml-1.5 text-[var(--color-text)]">{helper.rating} ({helper.reviews} reviews)</span>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <VerificationBadge type="police" isVerified={helper.verified?.police} />
-            <VerificationBadge type="id" isVerified={helper.verified?.id} />
-            <VerificationBadge type="pan" isVerified={helper.verified?.pan} />
+            <VerificationBadge type="police" isVerified={helper.verified?.police || helper.isVerified?.police} />
+            <VerificationBadge type="id" isVerified={helper.verified?.id || helper.isVerified?.id} />
+            <VerificationBadge type="pan" isVerified={helper.verified?.pan || helper.isVerified?.pan} />
           </div>
         </div>
       </div>
