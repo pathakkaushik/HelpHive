@@ -185,13 +185,19 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         }
 
         if (req.files && req.files.galleryImages) {
-            const uploadedImageUrls = [];
-            for (const file of req.files.galleryImages) {
-                const uploadedImage = await uploadOnCloudinary(file.path);
-                if (uploadedImage) uploadedImageUrls.push(uploadedImage.url);
-            }
             const existingImages = Array.isArray(userToUpdate.galleryImages) ? userToUpdate.galleryImages : [];
-            userToUpdate.galleryImages = [...existingImages, ...uploadedImageUrls];
+            const maxAllowed = 5 - existingImages.length;
+            if (maxAllowed <= 0) {
+                // Skip uploading — already at max
+            } else {
+                const filesToUpload = req.files.galleryImages.slice(0, maxAllowed);
+                const uploadedImageUrls = [];
+                for (const file of filesToUpload) {
+                    const uploadedImage = await uploadOnCloudinary(file.path);
+                    if (uploadedImage) uploadedImageUrls.push(uploadedImage.url);
+                }
+                userToUpdate.galleryImages = [...existingImages, ...uploadedImageUrls];
+            }
         }
     }
     
@@ -252,7 +258,36 @@ const updateVerificationDocuments = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, updatedWorker, "Documents uploaded successfully."));
 });
 
-  
+// Delete a specific gallery image
+const deleteGalleryImage = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+        throw new ApiError(400, "Image URL is required.");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new ApiError(404, "User not found.");
+    }
+
+    const existingImages = Array.isArray(user.galleryImages) ? user.galleryImages : [];
+    const filteredImages = existingImages.filter(img => img !== imageUrl);
+
+    if (filteredImages.length === existingImages.length) {
+        throw new ApiError(404, "Image not found in your gallery.");
+    }
+
+    user.galleryImages = filteredImages;
+    await user.save({ validateBeforeSave: false });
+
+    const updatedUser = await User.findById(userId).select("-password -refreshToken");
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedUser, "Gallery image deleted successfully."));
+});
+
 export { 
     registerUser,
     loginUser,
@@ -261,4 +296,5 @@ export {
     getCurrentUser, 
     updateUserProfile,
     updateVerificationDocuments,
+    deleteGalleryImage,
 };

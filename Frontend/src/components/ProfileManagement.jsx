@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { Upload, Save, DollarSign } from 'lucide-react';
+import { Upload, Save, DollarSign, Trash2, X, ImagePlus } from 'lucide-react';
+
+const MAX_GALLERY_PHOTOS = 5;
 
 const ProfileManagement = () => {
     const { user, updateUser } = useAuth();
@@ -17,6 +19,12 @@ const ProfileManagement = () => {
     const [galleryFiles, setGalleryFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [aiGenerating, setAiGenerating] = useState(false);
+    const [deletingImage, setDeletingImage] = useState(null);
+
+    // Existing gallery images from DB
+    const existingGallery = user?.galleryImages || [];
+    const totalPhotos = existingGallery.length + galleryFiles.length;
+    const remainingSlots = MAX_GALLERY_PHOTOS - existingGallery.length;
 
     const handleGenerateAiBio = async () => {
         setAiGenerating(true);
@@ -71,7 +79,39 @@ const ProfileManagement = () => {
         if (e.target.name === 'profileImage') {
             setProfileImageFile(e.target.files[0]);
         } else if (e.target.name === 'galleryImages') {
-            setGalleryFiles(Array.from(e.target.files));
+            const selectedFiles = Array.from(e.target.files);
+            const allowed = remainingSlots - galleryFiles.length;
+            if (allowed <= 0) {
+                toast.error(`Maximum ${MAX_GALLERY_PHOTOS} photos allowed. Delete existing photos to add new ones.`);
+                return;
+            }
+            if (selectedFiles.length > allowed) {
+                toast.error(`You can only add ${allowed} more photo(s). (Max ${MAX_GALLERY_PHOTOS} total)`);
+                setGalleryFiles(prev => [...prev, ...selectedFiles.slice(0, allowed)]);
+            } else {
+                setGalleryFiles(prev => [...prev, ...selectedFiles]);
+            }
+            // Reset input so same file can be re-selected
+            e.target.value = '';
+        }
+    };
+
+    const removeNewGalleryFile = (indexToRemove) => {
+        setGalleryFiles(prev => prev.filter((_, i) => i !== indexToRemove));
+    };
+
+    const handleDeleteExistingImage = async (imageUrl) => {
+        setDeletingImage(imageUrl);
+        const toastId = toast.loading("Deleting gallery image...");
+        try {
+            const response = await api.patch('/users/me/gallery-delete', { imageUrl });
+            updateUser(response.data.data);
+            toast.success("Gallery image deleted!", { id: toastId });
+        } catch (err) {
+            console.error("Delete gallery image failed:", err);
+            toast.error(err.response?.data?.message || "Failed to delete image.", { id: toastId });
+        } finally {
+            setDeletingImage(null);
         }
     };
 
@@ -218,22 +258,87 @@ const ProfileManagement = () => {
                         </section>
 
                         <section className="pt-6">
-                            <h3 className="text-lg font-medium text-[var(--color-text-strong)]">My Gallery</h3>
-                             <div className="mt-4">
-                                <label className="block text-sm font-medium">Upload New Gallery Photos</label>
-                                <div className="mt-2 flex justify-center rounded-lg border border-dashed border-[var(--color-border)] px-6 py-10">
-                                   <div className="text-center">
-                                        <Upload className="mx-auto h-12 w-12 text-[var(--color-text-muted)]" />
-                                        <div className="mt-4 flex text-sm leading-6 text-[var(--color-text-muted)]">
-                                            <label htmlFor="galleryImages" className="relative cursor-pointer rounded-md bg-[var(--color-bg-component)] font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
-                                                <span>{galleryFiles.length > 0 ? `${galleryFiles.length} files selected` : 'Select files'}</span>
-                                                <input id="galleryImages" name="galleryImages" type="file" multiple className="sr-only" onChange={handleFileChange} accept="image/*" />
-                                            </label>
-                                        </div>
-                                         <p className="text-xs leading-5 text-[var(--color-text-muted)]/80">Add up to 5 photos of your work</p>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-medium text-[var(--color-text-strong)]">My Gallery</h3>
+                                <span className="text-xs font-semibold text-[var(--color-text-muted)] bg-[var(--color-bg-component-subtle)] px-2 py-1 rounded-full">
+                                    {totalPhotos} / {MAX_GALLERY_PHOTOS} photos
+                                </span>
+                            </div>
+
+                            {/* Existing Uploaded Photos */}
+                            {existingGallery.length > 0 && (
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-[var(--color-text)] mb-2">Uploaded Photos</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                        {existingGallery.map((imgUrl, index) => (
+                                            <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border border-[var(--color-border)]">
+                                                <img src={imgUrl} alt={`Gallery ${index + 1}`} className="h-full w-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-200 flex items-center justify-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteExistingImage(imgUrl)}
+                                                        disabled={deletingImage === imgUrl}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg"
+                                                        title="Delete this photo"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                                {deletingImage === imgUrl && (
+                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* New Photo Previews */}
+                            {galleryFiles.length > 0 && (
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-green-400 mb-2">New Photos (will upload on Save)</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                        {galleryFiles.map((file, index) => (
+                                            <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border-2 border-dashed border-green-500/50">
+                                                <img src={URL.createObjectURL(file)} alt={`New ${index + 1}`} className="h-full w-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeNewGalleryFile(index)}
+                                                    className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-lg"
+                                                    title="Remove"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                                <p className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[10px] px-1 py-0.5 truncate">{file.name}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Upload Area */}
+                            {totalPhotos < MAX_GALLERY_PHOTOS && (
+                                <div className="mt-4">
+                                    <div className="flex justify-center rounded-lg border border-dashed border-[var(--color-border)] px-6 py-8 hover:border-[var(--color-primary)] transition-colors cursor-pointer">
+                                        <label htmlFor="galleryImages" className="text-center cursor-pointer">
+                                            <ImagePlus className="mx-auto h-10 w-10 text-[var(--color-text-muted)]" />
+                                            <p className="mt-2 text-sm font-semibold text-[var(--color-primary)]">
+                                                Click to add photos
+                                            </p>
+                                            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                                                {MAX_GALLERY_PHOTOS - totalPhotos} more photo(s) can be added
+                                            </p>
+                                            <input id="galleryImages" name="galleryImages" type="file" multiple className="sr-only" onChange={handleFileChange} accept="image/*" />
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {totalPhotos >= MAX_GALLERY_PHOTOS && (
+                                <p className="mt-3 text-xs text-amber-400 font-medium">⚠️ Maximum {MAX_GALLERY_PHOTOS} photos reached. Delete existing photos to add new ones.</p>
+                            )}
                         </section>
                     </>
                 )}

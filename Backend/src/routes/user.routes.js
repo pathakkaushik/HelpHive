@@ -5,7 +5,8 @@ import {
     registerUser, 
     refreshAccessToken,
     updateUserProfile, // Renamed from updateWorkerProfile
-    updateVerificationDocuments, // Add this import
+    updateVerificationDocuments,
+    deleteGalleryImage,
     getCurrentUser
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -45,5 +46,7 @@ router.route("/me/verification-documents").patch(
     ]),
     updateVerificationDocuments
 );
+
+router.route("/me/gallery-delete").patch(deleteGalleryImage);
 
 export default router;
