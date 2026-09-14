@@ -60,6 +60,43 @@ const updateWorkerVerification = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, worker.isVerified, "Worker verification status updated"));
 });
 
+const rejectWorkerDocument = asyncHandler(async (req, res) => {
+    const { workerId } = req.params;
+    const { docType } = req.body; // 'idProof', 'policeVerification', or 'panCard'
+
+    if (!mongoose.isValidObjectId(workerId)) {
+        throw new ApiError(400, "Invalid worker ID");
+    }
+
+    const worker = await User.findById(workerId);
+    if (!worker || worker.role !== UserRolesEnum.WORKER) {
+        throw new ApiError(404, "Worker not found");
+    }
+
+    if (!worker.verificationDocuments) {
+        worker.verificationDocuments = {};
+    }
+
+    if (docType === "idProof") {
+        worker.verificationDocuments.idProof = "";
+        worker.isVerified.id = false;
+    } else if (docType === "policeVerification") {
+        worker.verificationDocuments.policeVerification = "";
+        worker.isVerified.police = false;
+    } else if (docType === "panCard") {
+        worker.verificationDocuments.panCard = "";
+        worker.isVerified.pan = false;
+    } else {
+        throw new ApiError(400, "Invalid document type");
+    }
+
+    await worker.save({ validateBeforeSave: false });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, worker, "Document rejected and cleared successfully"));
+});
+
 const getWorkerDetails = asyncHandler(async (req, res) => {
     const { workerId } = req.params;
 
@@ -80,11 +117,11 @@ const getWorkerDetails = asyncHandler(async (req, res) => {
 });
 
 
-// Update your exports
 export {
     getAllUsers,
     getWorkerVerificationRequests,
     updateWorkerVerification,
-    getWorkerDetails, // Add new export
+    rejectWorkerDocument,
+    getWorkerDetails,
 };
 // made by kaushik

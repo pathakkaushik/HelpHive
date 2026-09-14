@@ -5,8 +5,9 @@ import {
     getAllUsers,
     getWorkerVerificationRequests,
     updateWorkerVerification,
+    rejectWorkerDocument,
     getWorkerDetails,
-} from "../controllers/admin.controller.js"; // We will create this next
+} from "../controllers/admin.controller.js";
 
 const router = Router();
 
@@ -14,8 +15,8 @@ router.use(verifyJWT, verifyAdmin);
 
 router.route("/users").get(getAllUsers);
 router.route("/verification-requests").get(getWorkerVerificationRequests);
-router.route("/worker/:workerId").get(getWorkerDetails); // New route to get full details, including documents
+router.route("/worker/:workerId").get(getWorkerDetails);
 router.route("/verify-worker/:workerId").patch(updateWorkerVerification);
-
+router.route("/reject-document/:workerId").patch(rejectWorkerDocument);
 
 export default router;

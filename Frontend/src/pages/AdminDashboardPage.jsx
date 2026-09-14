@@ -5,7 +5,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { ShieldCheck, ShieldX, Eye, FileText, X, ExternalLink, UserCheck } from 'lucide-react';
+import { ShieldCheck, ShieldX, Eye, FileText, X, ExternalLink, UserCheck, Trash2, RotateCcw } from 'lucide-react';
 import VerificationBadge from '../components/VerificationBadge';
 
 const AdminDashboardPage = () => {
@@ -51,6 +51,21 @@ const AdminDashboardPage = () => {
             console.error("Verification update error:", error);
         }
     };
+
+    const handleRejectDocument = async (workerId, docType, docLabel) => {
+        if (!window.confirm(`Are you sure you want to reject & delete this ${docLabel}? The worker will be notified to upload a valid document.`)) {
+            return;
+        }
+        const toastId = toast.loading("Rejecting document...");
+        try {
+            await api.patch(`/admin/reject-document/${workerId}`, { docType });
+            toast.success(`${docLabel} rejected & cleared! Worker can now re-upload.`, { id: toastId });
+            fetchVerificationRequests();
+        } catch (error) {
+            toast.error("Failed to reject document.", { id: toastId });
+            console.error("Reject document error:", error);
+        }
+    };
     
     if (authLoading || loading) {
         return <div className="text-center py-20 text-lg">Loading Admin Panel...</div>;
@@ -68,7 +83,7 @@ const AdminDashboardPage = () => {
                                 Admin Dashboard
                             </h1>
                             <p className="mt-2 text-lg text-[var(--color-text-muted)]">
-                                Review worker verification documents, approve IDs, and manage platform safety.
+                                Review worker verification documents, approve IDs, or reject invalid uploads.
                             </p>
                         </div>
                         <div className="rounded-lg bg-[var(--color-bg-component-subtle)] px-4 py-2 border border-[var(--color-border)] text-sm">
@@ -141,20 +156,30 @@ const AdminDashboardPage = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex items-center justify-between gap-2">
+                                                                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                                                                     <button
                                                                         onClick={() => setSelectedDoc({ title: `ID Proof - ${worker.fullName}`, url: docs.idProof })}
                                                                         className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1 font-medium"
                                                                     >
                                                                         <Eye size={14} /> Full View
                                                                     </button>
-                                                                    <button 
-                                                                        onClick={() => handleVerification(worker._id, { idVerified: !worker.isVerified?.id })}
-                                                                        className={`btn !px-3 !py-1 text-xs font-medium ${worker.isVerified?.id ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
-                                                                    >
-                                                                        {worker.isVerified?.id ? <ShieldX size={14} className="mr-1 inline" /> : <ShieldCheck size={14} className="mr-1 inline" />} 
-                                                                        {worker.isVerified?.id ? 'Revoke ID' : 'Approve ID'}
-                                                                    </button>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        <button 
+                                                                            onClick={() => handleRejectDocument(worker._id, 'idProof', 'ID Proof')}
+                                                                            className="btn !px-2 !py-1 text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center gap-1"
+                                                                            title="Reject document & clear for re-upload"
+                                                                        >
+                                                                            <Trash2 size={13} /> Reject
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleVerification(worker._id, { idVerified: !worker.isVerified?.id })}
+                                                                            className={`btn !px-2.5 !py-1 text-xs font-medium ${worker.isVerified?.id ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                                                                        >
+                                                                            {worker.isVerified?.id ? <ShieldX size={13} className="mr-1 inline" /> : <ShieldCheck size={13} className="mr-1 inline" />} 
+                                                                            {worker.isVerified?.id ? 'Revoke' : 'Approve'}
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ) : (
@@ -190,20 +215,30 @@ const AdminDashboardPage = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex items-center justify-between gap-2">
+                                                                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                                                                     <button
                                                                         onClick={() => setSelectedDoc({ title: `Police Verification - ${worker.fullName}`, url: docs.policeVerification })}
                                                                         className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1 font-medium"
                                                                     >
                                                                         <Eye size={14} /> Full View
                                                                     </button>
-                                                                    <button 
-                                                                        onClick={() => handleVerification(worker._id, { policeVerified: !worker.isVerified?.police })}
-                                                                        className={`btn !px-3 !py-1 text-xs font-medium ${worker.isVerified?.police ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'}`}
-                                                                    >
-                                                                        {worker.isVerified?.police ? <ShieldX size={14} className="mr-1 inline" /> : <ShieldCheck size={14} className="mr-1 inline" />} 
-                                                                        {worker.isVerified?.police ? 'Revoke Police' : 'Approve Police'}
-                                                                    </button>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        <button 
+                                                                            onClick={() => handleRejectDocument(worker._id, 'policeVerification', 'Police Verification')}
+                                                                            className="btn !px-2 !py-1 text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center gap-1"
+                                                                            title="Reject document & clear for re-upload"
+                                                                        >
+                                                                            <Trash2 size={13} /> Reject
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleVerification(worker._id, { policeVerified: !worker.isVerified?.police })}
+                                                                            className={`btn !px-2.5 !py-1 text-xs font-medium ${worker.isVerified?.police ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'}`}
+                                                                        >
+                                                                            {worker.isVerified?.police ? <ShieldX size={13} className="mr-1 inline" /> : <ShieldCheck size={13} className="mr-1 inline" />} 
+                                                                            {worker.isVerified?.police ? 'Revoke' : 'Approve'}
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ) : (
@@ -239,20 +274,30 @@ const AdminDashboardPage = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex items-center justify-between gap-2">
+                                                                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                                                                     <button
                                                                         onClick={() => setSelectedDoc({ title: `PAN Card - ${worker.fullName}`, url: docs.panCard })}
                                                                         className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1 font-medium"
                                                                     >
                                                                         <Eye size={14} /> Full View
                                                                     </button>
-                                                                    <button 
-                                                                        onClick={() => handleVerification(worker._id, { panVerified: !worker.isVerified?.pan })}
-                                                                        className={`btn !px-3 !py-1 text-xs font-medium ${worker.isVerified?.pan ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'}`}
-                                                                    >
-                                                                        {worker.isVerified?.pan ? <ShieldX size={14} className="mr-1 inline" /> : <ShieldCheck size={14} className="mr-1 inline" />} 
-                                                                        {worker.isVerified?.pan ? 'Revoke PAN' : 'Approve PAN'}
-                                                                    </button>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        <button 
+                                                                            onClick={() => handleRejectDocument(worker._id, 'panCard', 'PAN Card')}
+                                                                            className="btn !px-2 !py-1 text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center gap-1"
+                                                                            title="Reject document & clear for re-upload"
+                                                                        >
+                                                                            <Trash2 size={13} /> Reject
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleVerification(worker._id, { panVerified: !worker.isVerified?.pan })}
+                                                                            className={`btn !px-2.5 !py-1 text-xs font-medium ${worker.isVerified?.pan ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'}`}
+                                                                        >
+                                                                            {worker.isVerified?.pan ? <ShieldX size={13} className="mr-1 inline" /> : <ShieldCheck size={13} className="mr-1 inline" />} 
+                                                                            {worker.isVerified?.pan ? 'Revoke' : 'Approve'}
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ) : (

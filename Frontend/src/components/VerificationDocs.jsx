@@ -70,7 +70,11 @@ const VerificationDocs = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div>
                     <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">ID Proof (Aadhaar, Voter ID, etc.)</label>
-                    {user.verificationDocuments?.idProof && <p className="text-xs text-green-400 mt-1">A document has already been uploaded.</p>}
+                    {user.verificationDocuments?.idProof ? (
+                        <p className="text-xs text-green-400 mt-1 font-medium">✓ Uploaded & Pending Admin Verification</p>
+                    ) : (
+                        <p className="text-xs text-amber-400 mt-1">⚠️ Not uploaded or rejected by Admin. Please upload a valid document.</p>
+                    )}
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="idProof" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
@@ -79,7 +83,11 @@ const VerificationDocs = () => {
 
                 <div>
                     <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">Police Verification Certificate</label>
-                    {user.verificationDocuments?.policeVerification && <p className="text-xs text-green-400 mt-1">A document has already been uploaded.</p>}
+                    {user.verificationDocuments?.policeVerification ? (
+                        <p className="text-xs text-green-400 mt-1 font-medium">✓ Uploaded & Pending Admin Verification</p>
+                    ) : (
+                        <p className="text-xs text-amber-400 mt-1">⚠️ Not uploaded or rejected by Admin. Please upload a valid document.</p>
+                    )}
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="policeVerification" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
@@ -88,7 +96,11 @@ const VerificationDocs = () => {
 
                 <div>
                     <label className="block text-sm font-medium leading-6 text-[var(--color-text)]">PAN Card</label>
-                    {user.verificationDocuments?.panCard && <p className="text-xs text-green-400 mt-1">A document has already been uploaded.</p>}
+                    {user.verificationDocuments?.panCard ? (
+                        <p className="text-xs text-green-400 mt-1 font-medium">✓ Uploaded & Pending Admin Verification</p>
+                    ) : (
+                        <p className="text-xs text-amber-400 mt-1">⚠️ Not uploaded or rejected by Admin. Please upload a valid document.</p>
+                    )}
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="panCard" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
