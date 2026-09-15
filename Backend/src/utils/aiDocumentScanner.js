@@ -1,24 +1,36 @@
 import fs from 'fs';
 import axios from 'axios';
 
-// Keywords that indicate non-document files (food, exam papers, memes, scenery, etc.)
-const INVALID_FILENAME_KEYWORDS = [
-    'food', 'biryani', 'thali', 'dish', 'recipe', 'snack', 'dinner', 'lunch', 'breakfast',
-    'question', 'exam', 'paper', 'marks', 'syllabus', 'assignment', 'homework',
-    'meme', 'wallpaper', 'scenery', 'nature', 'landscape', 'flower', 'car', 'bike',
-    'game', 'screenshot', 'dp', 'avatar', 'funny', 'download', 'image', 'picture'
+// Extensive list of non-document keywords (food, snacks, beverages, exam papers, memes, scenery, etc.)
+export const INVALID_FILENAME_KEYWORDS = [
+    // Food & Drinks
+    'badapao', 'vadapao', 'vadapav', 'vada', 'pao', 'pav', 'samosa', 'chaii', 'chai', 'tea', 'coffee',
+    'biryani', 'thali', 'food', 'dish', 'recipe', 'snack', 'dinner', 'lunch', 'breakfast',
+    'pizza', 'burger', 'noodle', 'rice', 'curry', 'paneer', 'chicken', 'mutton', 'sweet', 'mithai',
+    'cake', 'juice', 'drink', 'eating', 'restaurant', 'hotel', 'menu', 'roti', 'paratha', 'dosa', 'idli',
+    // Exam & School/College
+    'question', 'exam', 'paper', 'marks', 'syllabus', 'assignment', 'homework', 'test', 'result',
+    'sheet', 'page', 'book', 'notes', 'questionpaper', 'anskey',
+    // General Media & Non-documents
+    'meme', 'wallpaper', 'scenery', 'nature', 'landscape', 'flower', 'car', 'bike', 'vehicle',
+    'game', 'screenshot', 'dp', 'avatar', 'funny', 'download', 'image', 'picture', 'photo',
+    'img', 'pic', 'selfie', 'camera', 'gallery', 'random', 'temp'
 ];
 
 export const validateDocumentWithAI = async (filePath, originalName = '', documentType = 'Government ID') => {
-    // 1. Filename Pattern Verification
+    // 1. Strict Filename & Keyword Inspection
     const cleanFileName = (originalName || filePath).toLowerCase();
-    const matchedInvalidKeyword = INVALID_FILENAME_KEYWORDS.find(keyword => cleanFileName.includes(keyword));
+    
+    // Check if filename contains any forbidden non-document terms
+    const matchedKeyword = INVALID_FILENAME_KEYWORDS.find(keyword => cleanFileName.includes(keyword));
 
-    // If filename clearly indicates non-document file (e.g., biryani.jpg, thali.png, question-paper.pdf)
-    if (matchedInvalidKeyword && !cleanFileName.includes('aadhaar') && !cleanFileName.includes('pan') && !cleanFileName.includes('police') && !cleanFileName.includes('id')) {
+    // Exclude if filename contains explicit document indicators (e.g., aadhaar_photo.jpg)
+    const isExplicitDocName = cleanFileName.includes('aadhaar') || cleanFileName.includes('pan') || cleanFileName.includes('police') || cleanFileName.includes('passport') || cleanFileName.includes('license');
+
+    if (matchedKeyword && !isExplicitDocName) {
         return {
             isValid: false,
-            reason: `Invalid document detected ('${originalName}'). AI Scanner identified '${matchedInvalidKeyword}' content. Please upload an official ${documentType}.`
+            reason: `Invalid document detected ('${originalName}'). AI Scanner detected '${matchedKeyword}' content. Please upload a valid official ${documentType}.`
         };
     }
 
@@ -35,12 +47,12 @@ export const validateDocumentWithAI = async (filePath, originalName = '', docume
 
             const prompt = `Inspect this file uploaded for a ${documentType} verification requirement.
 Is this a genuine, official document (Aadhaar Card, PAN Card, Voter ID, Driving License, Police Verification Certificate, or Govt Document)?
-CRITICAL: If the image shows food, meals, thali, biryani, exam question papers, textbook pages, scenery, animals, memes, or non-document objects, set isValidDocument to FALSE.
+CRITICAL: If the image shows food, vada pav, samosa, chai, biryani, thali, exam question papers, textbook pages, scenery, animals, memes, or non-document objects, set isValidDocument to FALSE.
 Respond ONLY in JSON format:
 {
   "isValidDocument": boolean,
   "detectedContent": "string",
-  "reason": "1 short sentence explaining why it is valid or invalid"
+  "reason": "short explanation in 1 sentence"
 }`;
 
             const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleApiKey}`;

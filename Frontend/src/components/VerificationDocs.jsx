@@ -2,7 +2,27 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { Upload, Save, ShieldCheck } from 'lucide-react';
+import { Upload, Save, ShieldCheck, AlertTriangle } from 'lucide-react';
+
+const FORBIDDEN_KEYWORDS = [
+    'badapao', 'vadapao', 'vadapav', 'vada', 'pao', 'pav', 'samosa', 'chaii', 'chai', 'tea', 'coffee',
+    'biryani', 'thali', 'food', 'dish', 'recipe', 'snack', 'dinner', 'lunch', 'breakfast',
+    'pizza', 'burger', 'noodle', 'rice', 'curry', 'paneer', 'chicken', 'mutton', 'sweet', 'mithai',
+    'question', 'exam', 'paper', 'marks', 'syllabus', 'assignment', 'homework', 'test', 'result',
+    'meme', 'wallpaper', 'scenery', 'nature', 'landscape', 'flower', 'car', 'bike', 'vehicle',
+    'game', 'screenshot', 'dp', 'avatar', 'funny', 'download', 'image', 'picture', 'photo', 'selfie'
+];
+
+const checkInvalidFile = (file, docName) => {
+    if (!file) return null;
+    const name = file.name.toLowerCase();
+    const matched = FORBIDDEN_KEYWORDS.find(kw => name.includes(kw));
+    const isExplicitDocName = name.includes('aadhaar') || name.includes('pan') || name.includes('police') || name.includes('passport') || name.includes('license') || name.includes('cert');
+    if (matched && !isExplicitDocName) {
+        return `AI Scanner Rejected '${file.name}': Non-document content detected ('${matched}'). Please select an official ${docName} document.`;
+    }
+    return null;
+};
 
 const VerificationDocs = () => {
     const { user, updateUser } = useAuth();
@@ -12,24 +32,52 @@ const VerificationDocs = () => {
     const [loading, setLoading] = useState(false);
 
     const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        let docName = "Document";
+        if (e.target.name === 'idProof') docName = "ID Proof";
+        if (e.target.name === 'policeVerification') docName = "Police Certificate";
+        if (e.target.name === 'panCard') docName = "PAN Card";
+
+        const err = checkInvalidFile(file, docName);
+        if (err) {
+            toast.error(err, { duration: 5000 });
+            e.target.value = ""; // Clear file input
+            if (e.target.name === 'idProof') setIdProofFile(null);
+            if (e.target.name === 'policeVerification') setPoliceFile(null);
+            if (e.target.name === 'panCard') setPanFile(null);
+            return;
+        }
+
         if (e.target.name === 'idProof') {
-            setIdProofFile(e.target.files[0]);
+            setIdProofFile(file);
         } else if (e.target.name === 'policeVerification') {
-            setPoliceFile(e.target.files[0]);
+            setPoliceFile(file);
         } else if (e.target.name === 'panCard') {
-            setPanFile(e.target.files[0]);
+            setPanFile(file);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!idProofFile && !policeFile && !panFile) {
-            toast.error("Please select at least one file to upload.");
+            toast.error("Please select at least one valid file to upload.");
+            return;
+        }
+
+        // Double check invalid files
+        const idErr = checkInvalidFile(idProofFile, "ID Proof");
+        const policeErr = checkInvalidFile(policeFile, "Police Verification Certificate");
+        const panErr = checkInvalidFile(panFile, "PAN Card");
+
+        if (idErr || policeErr || panErr) {
+            toast.error(idErr || policeErr || panErr, { duration: 5000 });
             return;
         }
 
         setLoading(true);
-        const toastId = toast.loading("Uploading documents...");
+        const toastId = toast.loading("AI Scanning & Uploading documents...");
 
         const dataToSubmit = new FormData();
         if (idProofFile) dataToSubmit.append('idProof', idProofFile);
@@ -40,14 +88,14 @@ const VerificationDocs = () => {
             const response = await api.patch('/users/me/verification-documents', dataToSubmit, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            updateUser(response.data.data); // Update user in context to get new doc URLs
-            toast.success("Documents uploaded successfully!", { id: toastId });
+            updateUser(response.data.data);
+            toast.success("Documents AI Scanned & uploaded successfully!", { id: toastId });
             setIdProofFile(null);
             setPoliceFile(null);
             setPanFile(null);
         } catch (error) {
             console.error("Document upload failed:", error);
-            toast.error(error.response?.data?.message || "Failed to upload documents.", { id: toastId });
+            toast.error(error.response?.data?.message || "AI Scanner Rejected: Failed to upload documents.", { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -64,7 +112,7 @@ const VerificationDocs = () => {
                     <ShieldCheck className="h-5 w-5 text-purple-400" />
                     <h4 className="text-sm font-bold text-purple-300">✨ AI OCR Automated Document Scanner Active</h4>
                 </div>
-                <p className="text-xs text-[var(--color-text-muted)] mt-1">Uploaded documents will be scanned by AI for automatic Name, DOB, and ID Number verification.</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">Uploaded documents will be scanned by AI for automatic Name, DOB, and ID Number verification. Non-document images (food, memes, papers) will be rejected.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -78,7 +126,7 @@ const VerificationDocs = () => {
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="idProof" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
-                    {idProofFile && <p className="text-xs text-[var(--color-text-muted)] mt-1">Selected: {idProofFile.name}</p>}
+                    {idProofFile && <p className="text-xs text-[var(--color-primary)] font-medium mt-1">Selected: {idProofFile.name}</p>}
                 </div>
 
                 <div>
@@ -91,7 +139,7 @@ const VerificationDocs = () => {
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="policeVerification" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
-                     {policeFile && <p className="text-xs text-[var(--color-text-muted)] mt-1">Selected: {policeFile.name}</p>}
+                     {policeFile && <p className="text-xs text-[var(--color-primary)] font-medium mt-1">Selected: {policeFile.name}</p>}
                 </div>
 
                 <div>
@@ -104,12 +152,12 @@ const VerificationDocs = () => {
                     <div className="mt-2 flex items-center gap-4">
                         <input type="file" name="panCard" onChange={handleFileChange} accept="image/*,.pdf" className="flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-component-subtle)] file:text-[var(--color-text)] hover:file:bg-[var(--color-border)]" />
                     </div>
-                     {panFile && <p className="text-xs text-[var(--color-text-muted)] mt-1">Selected: {panFile.name}</p>}
+                     {panFile && <p className="text-xs text-[var(--color-primary)] font-medium mt-1">Selected: {panFile.name}</p>}
                 </div>
 
                 <div className="flex justify-end pt-4 border-t border-[var(--color-border)]">
                     <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={loading}>
-                        <Upload size={18}/> {loading ? 'Uploading...' : 'Upload Selected Files'}
+                        <Upload size={18}/> {loading ? 'AI Scanning & Uploading...' : 'Upload Selected Files'}
                     </button>
                 </div>
             </form>
